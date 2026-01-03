@@ -10,7 +10,7 @@ export default function AboutPage() {
         
         {/* 1. Intro / Artist Statement */}
         <section className="mb-20 text-center">
-            <h1 className="font-serif text-5xl md:text-7xl mb-8 text-[var(--accent-purple)] tracking-tighter mix-blend-screen">
+            <h1 className="font-serif text-5xl md:text-7xl mb-8 text-white tracking-tighter mix-blend-screen">
                 I am a multidisciplinary artist exploring memory, identity, and the vibrant chaos of Lagos through mixed media and aggressive color.
             </h1>
             <p className="font-mono text-sm uppercase tracking-widest opacity-60">
@@ -22,7 +22,7 @@ export default function AboutPage() {
         <section className="mb-20">
             <div className="aspect-[4/3] relative w-full overflow-hidden mb-4">
                 <Image
-                    src="/images/artist-portrait.jpg"
+                    src="/images/about-me.jpg"
                     alt="Oma Achebe Portrait"
                     fill
                     className="object-cover"
