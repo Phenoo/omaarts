@@ -18,7 +18,7 @@ export default function ShopCTA() {
                 Own a piece of the narrative. From large-scale canvas works to limited edition prints, each piece is a fragment of the chaotic beauty we explore.
             </p>
             <div className="mt-4">
-                <Link href="/shop" className="inline-block px-12 py-4 bg-[var(--accent-secondary)] text-white font-mono text-sm uppercase tracking-widest hover:bg-white hover:text-[var(--accent-secondary)] hover:[box-shadow:0_0_20px_var(--accent-secondary)] transition-all duration-300 rounded-full">
+                <Link href="/shop" className="inline-block px-12 py-4 bg-[var(--accent-secondary)] text-white font-mono text-sm uppercase tracking-widest hover:bg-white hover:text-[var(--accent-secondary)] transition-all duration-300 rounded-full">
                     Visit Shop
                 </Link>
             </div>

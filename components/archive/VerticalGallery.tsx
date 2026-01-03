@@ -114,7 +114,7 @@ export default function VerticalGallery() {
                     <p className="font-sans text-sm md:text-base max-w-sm mt-4 text-white/70 leading-relaxed">
                         {art.description}
                     </p>
-                    <Link href={`/work/${art.id}`} className="mt-8 px-6 py-2 border border-[var(--accent-primary)] text-[var(--accent-primary)] rounded-full font-mono text-xs uppercase hover:bg-[var(--accent-primary)] hover:text-black hover:[box-shadow:0_0_15px_var(--accent-primary)] transition-all duration-300 w-fit">
+                    <Link href={`/work/${art.id}`} className="mt-8 px-6 py-2 border border-[var(--accent-primary)] text-[var(--accent-primary)] rounded-full font-mono text-xs uppercase hover:bg-[var(--accent-primary)] hover:text-black transition-all duration-300 w-fit">
                         View Details
                     </Link>
                 </div>
@@ -122,7 +122,7 @@ export default function VerticalGallery() {
         ))}
         
         <div className="flex justify-center mt-12">
-            <Link href="/shop" className="px-12 py-4 border border-white/20 text-white font-mono text-sm uppercase tracking-widest hover:bg-[var(--accent-secondary)] hover:border-[var(--accent-secondary)] hover:text-white hover:[box-shadow:0_0_20px_var(--accent-secondary)] transition-all duration-300">
+            <Link href="/shop" className="px-12 py-4 border border-white/20 text-white font-mono text-sm uppercase tracking-widest hover:bg-[var(--accent-secondary)] hover:border-[var(--accent-secondary)] hover:text-white transition-all duration-300">
                 View All Projects
             </Link>
         </div>
