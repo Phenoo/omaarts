@@ -10,7 +10,7 @@ import clsx from 'clsx';
 gsap.registerPlugin(ScrollTrigger);
 
 const ARTWORKS = [
-  { id: 'lagos-heat', src: '/images/archive-1.png', title: 'Lagos Heat', year: '2024', description: 'Exploration of geometric void and structure.' },
+  { id: 'lagos-heat', src: '/images/archive-1.png', title: 'Awka Heat', year: '2024', description: 'Exploration of geometric void and structure.' },
   { id: 'indigo-dreams', src: '/images/archive-2.png', title: 'Indigo Dreams', year: '2025', description: 'Chaotic expressionism with neon accents.' },
   { id: 'market-noise', src: '/images/hero-texture.png', title: 'Market Noise', year: '2023', description: 'Textural study of brutalist surfaces.' },
   { id: 'ancestral', src: '/images/archive-1.png', title: 'Ancestral', year: '2024', description: 'Recursive forms in monochrome.' },

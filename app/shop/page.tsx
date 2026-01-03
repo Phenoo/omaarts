@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 const ARTWORKS = [
-    { id: 'lagos-heat', title: 'Lagos Heat', price: '$4,500', image: '/images/archive-1.png', category: 'Painting' },
+    { id: 'lagos-heat', title: 'Awka Heat', price: '$4,500', image: '/images/archive-1.png', category: 'Painting' },
     { id: 'indigo-dreams', title: 'Indigo Dreams', price: '$3,200', image: '/images/archive-2.png', category: 'Mixed Media' },
     { id: 'market-noise', title: 'Market Noise', price: '$5,000', image: '/images/hero-texture.png', category: 'Painting' },
     { id: 'ancestral', title: 'Ancestral', price: '$8,000', image: '/images/artist-studio.png', category: 'Installation' },

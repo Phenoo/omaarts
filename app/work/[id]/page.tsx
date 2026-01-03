@@ -4,7 +4,7 @@ import Image from 'next/image';
 // Mock data lookup (ideally fetched from CMS/API)
 const ARTWORKS: Record<string, { title: string; year: string; medium: string; dimensions: string; price: string; description: string; image: string }> = {
     'lagos-heat': {
-        title: 'Lagos Heat',
+        title: 'Awka Heat',
         year: '2024',
         medium: 'Oil and Acrylic on Canvas',
         dimensions: '150 x 200 cm',

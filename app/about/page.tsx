@@ -11,7 +11,7 @@ export default function AboutPage() {
         {/* 1. Intro / Artist Statement */}
         <section className="mb-20 text-center">
             <h1 className="font-serif text-5xl md:text-7xl mb-8 text-white tracking-tighter mix-blend-screen">
-                I am a multidisciplinary artist exploring memory, identity, and the vibrant chaos of Lagos through mixed media and aggressive color.
+                I am a multidisciplinary artist exploring memory, identity, and the vibrant chaos of Awka through mixed media and aggressive color.
             </h1>
             <p className="font-mono text-sm uppercase tracking-widest opacity-60">
                 Oil • Acrylic • Digital • Installation
@@ -29,7 +29,7 @@ export default function AboutPage() {
                     priority
                 />
             </div>
-            <p className="font-mono text-xs text-center opacity-50">Photographed in Lagos Studio, 2025</p>
+            <p className="font-mono text-xs text-center opacity-50">Photographed in Awka Studio, 2025</p>
         </section>
 
         {/* 3. Longer Bio (The Story) */}
@@ -37,10 +37,10 @@ export default function AboutPage() {
             <h2 className="font-mono text-sm uppercase tracking-widest text-[var(--accent-orange)] mb-8">The Story</h2>
             <div className="space-y-6 font-sans text-lg leading-relaxed opacity-90">
                 <p>
-                    I was born in 1998 in Lagos, Nigeria, a city that assaults the senses in the most beautiful way. Growing up, I was surrounded by the rhythmic clash of traditional pattern and modern concrete. This duality became the foundation of my visual language.
+                    I was born in 1998 in Awka, Nigeria, a city that assaults the senses in the most beautiful way. Growing up, I was surrounded by the rhythmic clash of traditional pattern and modern concrete. This duality became the foundation of my visual language.
                 </p>
                 <p>
-                    After training at the Slade School of Fine Art in London, I returned home to reclaim my narrative. My earlier work was quiet and minimalist, a result of academic conditioning. But Lagos doesn&apos;t whisper. It screams.
+                    After training at the Slade School of Fine Art in London, I returned home to reclaim my narrative. My earlier work was quiet and minimalist, a result of academic conditioning. But Awka doesn&apos;t whisper. It screams.
                 </p>
                 <p>
                     Today, my work embraces <strong>radical vibrancy</strong>. I use color not just as decoration, but as a political statement—a reclaiming of space, joy, and visibility in a world that often demands silence.
@@ -70,8 +70,8 @@ export default function AboutPage() {
                     <span className="opacity-60">Serpentine Gallery, London (Solo)</span>
                 </li>
                 <li className="flex flex-col md:flex-row md:justify-between border-b border-[#333] pb-4">
-                    <span className="text-[var(--accent-purple)]">2024 — Lagos Noise</span>
-                    <span className="opacity-60">Rele Gallery, Lagos (Solo)</span>
+                    <span className="text-[var(--accent-purple)]">2024 — Awka Noise</span>
+                    <span className="opacity-60">Rele Gallery, Awka (Solo)</span>
                 </li>
                 <li className="flex flex-col md:flex-row md:justify-between border-b border-[#333] pb-4">
                     <span className="text-[var(--accent-purple)]">2023 — Digital Masquerade</span>

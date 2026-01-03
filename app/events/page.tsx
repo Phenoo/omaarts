@@ -63,7 +63,7 @@ export default function EventsPage() {
                 <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-[#333] pb-6 hover:bg-[#1A1A1A] transition-colors p-4 -mx-4 rounded-lg group">
                     <div>
                         <span className="block font-mono text-xs text-[var(--accent-orange)] mb-1">OCT 12</span>
-                        <h4 className="font-serif text-2xl group-hover:text-[var(--accent-purple)] transition-colors">Lagos Heat: Opening Night</h4>
+                        <h4 className="font-serif text-2xl group-hover:text-[var(--accent-purple)] transition-colors">Awka Heat: Opening Night</h4>
                     </div>
                     <div className="mt-4 md:mt-0 flex gap-8 items-center">
                         <span className="font-mono text-xs opacity-50">Exhibition</span>

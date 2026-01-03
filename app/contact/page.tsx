@@ -25,7 +25,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                     <span className="block opacity-50 mb-2">Studio</span>
-                    <p>Lagos, Nigeria</p>
+                    <p>Awka, Nigeria</p>
                 </div>
             </div>
         </div>

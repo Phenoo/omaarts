@@ -69,14 +69,14 @@ export default function HeroCanvas() {
 
       <div
         ref={textRef}
-        className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none "
+        className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none px-4"
       >
-        <h1 className="text-9xl font-serif text-[#111] opacity-90 tracking-tighter text-center leading-[0.8] ">
+        <h1 className="text-6xl md:text-9xl font-serif text-[#111] opacity-90 tracking-tighter text-center leading-[0.85] md:leading-[0.8] ">
           ARTS BY
           <br />
           OMA
         </h1>
-        <p className="mt-8 text-xl font-mono text-[#111] tracking-widest uppercase bg-transparent border border-[#F9F9F9]/30 px-4 py-2 backdrop-blur-sm ">
+        <p className="mt-6 md:mt-8 text-xs md:text-xl font-mono text-[#111] tracking-widest uppercase bg-transparent border border-[#F9F9F9]/30 px-4 py-2 backdrop-blur-sm text-center">
           Nigerian Contemporary Artist
         </p>
       </div>

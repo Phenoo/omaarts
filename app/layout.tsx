@@ -1,10 +1,16 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { DM_Sans } from "next/font/google";
 import "./globals.css";
 
 import SmoothScroller from '../components/SmoothScroller';
 import CustomCursor from '../components/CustomCursor';
 import NavigationOverlay from '../components/NavigationOverlay';
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  variable: "--font-dm-sans",
+  weight: ["400", "500", "700"],
+});
 
 export const metadata: Metadata = {
   title: 'Arts by Oma | Nigerian Contemporary Art',
@@ -18,7 +24,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased">
+      <body className={`${dmSans.variable} antialiased`}>
         <SmoothScroller>
           <CustomCursor />
           <NavigationOverlay />

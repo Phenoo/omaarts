@@ -16,7 +16,7 @@ export default function AboutSnippet() {
           <div className="space-y-4 font-sans text-lg leading-relaxed text-[#1A1A1A]/80">
             <p>
               Oma Achebe is a Nigerian artist whose work vibrates with the
-              energy of Lagos. Her palette is a celebration of life, blending
+              energy of Awka. Her palette is a celebration of life, blending
               traditional motifs with contemporary abstraction.
             </p>
             <p>
