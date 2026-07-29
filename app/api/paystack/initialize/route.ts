@@ -90,8 +90,8 @@ export async function POST(request: Request) {
         numberOfGuests,
         specialRequests: specialRequests || '',
         bookingNotes: bookingNotes || '',
-        subtotal: priceResult.subtotal,
-        total: priceResult.total,
+        subtotal: body.amount ? body.amount : priceResult.subtotal,
+        total: body.amount || priceResult.total,
         currency: 'NGN',
         paymentStatus: 'PENDING',
         bookingStatus: 'PENDING',
@@ -111,7 +111,7 @@ export async function POST(request: Request) {
         },
         body: JSON.stringify({
           email,
-          amount: priceResult.total * 100, // Paystack amount is in kobo (minor unit)
+          amount: (body.amount || priceResult.total) * 100, // Paystack amount is in kobo (minor unit)
           reference,
           callback_url: `${origin}/checkout/confirmation?type=booking&id=${bookingRef.id}`,
           metadata: {
@@ -178,7 +178,7 @@ export async function POST(request: Request) {
       // 2. Add delivery fee
       const defaultDeliveryFee = 3000;
       const deliveryFee = deliveryOption === 'delivery' ? defaultDeliveryFee : 0;
-      const grandTotal = subtotal + deliveryFee;
+      const grandTotal = body.amount || (subtotal + deliveryFee);
 
       // 3. Generate reference
       const reference = `PSO-${Date.now()}-${Math.floor(Math.random() * 10000)}`;

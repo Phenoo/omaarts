@@ -103,6 +103,7 @@ export default function BookingForm({ activity, onSuccess }: BookingFormProps) {
           durationHours: activity.pricingModel === 'TIERED' || activity.pricingModel === 'PER_HOUR' ? durationHours : 1,
           specialRequests,
           bookingNotes,
+          amount: priceResult.total,
         }),
       });
 

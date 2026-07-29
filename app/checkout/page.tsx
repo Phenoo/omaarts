@@ -94,6 +94,7 @@ export default function CheckoutPage() {
             price: item.price,
             quantity: 1,
           })),
+          amount: grandTotal,
         }),
       });
 
