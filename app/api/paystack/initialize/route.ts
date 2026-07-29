@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { adminDb, isConfigured } from '@/lib/firebase/admin';
+import { getAdminContext } from '@/lib/firebase/admin';
 import { calculateActivityPrice } from '@/lib/utils/pricing';
 import { Activity, Artwork } from '@/lib/types';
 
@@ -15,10 +15,11 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { type } = body;
+    const { adminDb, isConfigured } = getAdminContext();
 
-    if (!isConfigured) {
+    if (!isConfigured || !adminDb) {
       return errorResponse(
-        'Firebase Admin credentials are not configured in your project settings. Please configure FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY.',
+        'Firebase Admin credentials are not configured in your project settings. Please configure FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY.',
         500
       );
     }

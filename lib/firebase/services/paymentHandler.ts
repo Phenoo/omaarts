@@ -1,4 +1,4 @@
-import { adminDb } from '../admin';
+import { getAdminContext } from '../admin';
 import { Transaction } from 'firebase-admin/firestore';
 import { Booking, Order, Sale, InventoryMovement } from '../../types';
 
@@ -11,6 +11,11 @@ export async function processSuccessfulPayment(params: {
   paidAt?: string;
 }) {
   const { type, id, reference, amount, channel, paidAt } = params;
+  const { adminDb } = getAdminContext();
+
+  if (!adminDb) {
+    throw new Error('Firebase Admin database is not available.');
+  }
 
   // Run inside Firestore transaction for atomic consistency
   return adminDb.runTransaction(async (transaction: Transaction) => {

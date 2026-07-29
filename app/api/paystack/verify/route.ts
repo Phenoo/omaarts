@@ -1,13 +1,19 @@
 import { NextResponse } from 'next/server';
-import { adminDb, isConfigured } from '@/lib/firebase/admin';
+import { getAdminContext } from '@/lib/firebase/admin';
 import { processSuccessfulPayment } from '@/lib/firebase/services/paymentHandler';
 import { sendBookingConfirmationEmail, sendOrderConfirmationEmail } from '@/lib/email/resend';
 
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : 'Internal server error.';
+}
+
 export async function GET(request: Request) {
   try {
-    if (!isConfigured) {
+    const { adminDb, isConfigured } = getAdminContext();
+
+    if (!isConfigured || !adminDb) {
       return NextResponse.json({
-        error: 'Firebase Admin credentials are not configured in your .env.local file. Please add FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY.'
+        error: 'Firebase Admin credentials are not configured in your project settings. Please add FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY.'
       }, { status: 500 });
     }
     const { searchParams } = new URL(request.url);
@@ -70,15 +76,15 @@ export async function GET(request: Request) {
     });
 
     // 3. Dispatch receipt email if first time success
-    if (result && (result as any).success) {
+    if (result && 'success' in result && result.success) {
       try {
         const docSnap = await adminDb.collection(type === 'booking' ? 'bookings' : 'orders').doc(id).get();
         if (docSnap.exists) {
           const docData = { id: docSnap.id, ...docSnap.data() };
           if (type === 'booking') {
-            await sendBookingConfirmationEmail(docData as any);
+            await sendBookingConfirmationEmail(docData as Parameters<typeof sendBookingConfirmationEmail>[0]);
           } else {
-            await sendOrderConfirmationEmail(docData as any);
+            await sendOrderConfirmationEmail(docData as Parameters<typeof sendOrderConfirmationEmail>[0]);
           }
         }
       } catch (emailErr) {
@@ -95,9 +101,9 @@ export async function GET(request: Request) {
       result,
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('API verify error:', error);
-    return NextResponse.json({ error: error.message || 'Internal server error.' }, { status: 500 });
+    return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
   }
 }
 export const dynamic = 'force-dynamic';

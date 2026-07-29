@@ -1,56 +1,88 @@
-import { initializeApp, getApps, getApp, cert } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
-import { getAuth } from 'firebase-admin/auth';
-import { getStorage } from 'firebase-admin/storage';
+import { cert, getApp, getApps, initializeApp } from 'firebase-admin/app';
+import { getAuth, type Auth } from 'firebase-admin/auth';
+import { getFirestore, type Firestore } from 'firebase-admin/firestore';
+import { getStorage, type Storage } from 'firebase-admin/storage';
 
-const projectId = process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-const storageBucket = process.env.FIREBASE_STORAGE_BUCKET || process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
+export interface AdminContext {
+  adminAuth: Auth | null;
+  adminDb: Firestore | null;
+  adminStorage: Storage | null;
+  error?: string;
+  isConfigured: boolean;
+}
 
-// Strip surrounding quotes and double-escaped newlines which often occur on hosting platform consoles like Vercel
-let privateKey = process.env.FIREBASE_PRIVATE_KEY;
-if (privateKey) {
-  privateKey = privateKey.trim();
+let cachedContext: AdminContext | null = null;
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : 'Unknown Firebase Admin initialization error.';
+}
+
+function normalizePrivateKey() {
+  const rawPrivateKey = process.env.FIREBASE_PRIVATE_KEY;
+  if (!rawPrivateKey) {
+    return '';
+  }
+
+  let privateKey = rawPrivateKey.trim();
   if (privateKey.startsWith('"') && privateKey.endsWith('"')) {
     privateKey = privateKey.slice(1, -1);
   }
-  privateKey = privateKey.replace(/\\n/g, '\n');
+
+  return privateKey.replace(/\\n/g, '\n');
 }
 
-export let isConfigured = !!(privateKey && clientEmail);
+function buildAdminContext(): AdminContext {
+  const projectId = process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+  const storageBucket = process.env.FIREBASE_STORAGE_BUCKET || process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
+  const privateKey = normalizePrivateKey();
 
-let adminDb: ReturnType<typeof getFirestore>;
-let adminAuth: ReturnType<typeof getAuth>;
-let adminStorage: ReturnType<typeof getStorage>;
+  if (!projectId || !clientEmail || !privateKey) {
+    return {
+      adminAuth: null,
+      adminDb: null,
+      adminStorage: null,
+      error: 'Firebase Admin credentials are incomplete.',
+      isConfigured: false,
+    };
+  }
 
-if (isConfigured) {
   try {
-    const app = getApps().length === 0 
+    const app = getApps().length === 0
       ? initializeApp({
           credential: cert({
             projectId,
-            clientEmail: clientEmail!,
-            privateKey: privateKey!,
+            clientEmail,
+            privateKey,
           }),
           storageBucket,
         })
       : getApp();
 
-    adminDb = getFirestore(app);
-    adminAuth = getAuth(app);
-    adminStorage = getStorage(app);
-  } catch (error) {
-    console.error('Firebase Admin SDK initialization failed on startup:', error);
-    isConfigured = false;
-    adminDb = null as any;
-    adminAuth = null as any;
-    adminStorage = null as any;
+    return {
+      adminAuth: getAuth(app),
+      adminDb: getFirestore(app),
+      adminStorage: getStorage(app),
+      isConfigured: true,
+    };
+  } catch (error: unknown) {
+    const message = getErrorMessage(error);
+    console.error('Firebase Admin SDK initialization failed:', error);
+
+    return {
+      adminAuth: null,
+      adminDb: null,
+      adminStorage: null,
+      error: message,
+      isConfigured: false,
+    };
   }
-} else {
-  adminDb = null as any;
-  adminAuth = null as any;
-  adminStorage = null as any;
 }
 
-export { adminDb, adminAuth, adminStorage };
-export { getApp as adminApp };
+export function getAdminContext(): AdminContext {
+  if (!cachedContext) {
+    cachedContext = buildAdminContext();
+  }
+
+  return cachedContext;
+}
