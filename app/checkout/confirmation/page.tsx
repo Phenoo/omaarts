@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { db } from '@/lib/firebase/config';
 import { doc, getDoc } from 'firebase/firestore';
 import { Booking, Order } from '@/lib/types';
-import { CheckCircle2, AlertTriangle, Printer, Home, Phone, ShoppingBag } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, Printer, Home, Phone } from 'lucide-react';
 import Footer from '@/components/Footer';
 
 interface PageProps {
@@ -16,12 +16,12 @@ export default function ConfirmationPage({ searchParams }: PageProps) {
   const params = use(searchParams);
   const type = params.type;
   const id = params.id;
-  const reference = params.reference;
 
   const [booking, setBooking] = useState<Booking | null>(null);
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [verifyAttempts, setVerifyAttempts] = useState(0);
+  const isBookingEnquiry = type === 'booking' && booking?.paymentMode === 'ENQUIRY';
 
   // Poll database to verify paymentStatus changes to PAID (in case webhook is still processing)
   useEffect(() => {
@@ -41,7 +41,7 @@ export default function ConfirmationPage({ searchParams }: PageProps) {
           const data = snap.data();
           if (type === 'booking') {
             setBooking({ id: snap.id, ...data } as Booking);
-            if (data.paymentStatus === 'PAID') {
+            if (data.paymentStatus === 'PAID' || data.paymentMode === 'ENQUIRY') {
               setLoading(false);
               return;
             }
@@ -112,7 +112,7 @@ export default function ConfirmationPage({ searchParams }: PageProps) {
   // Not Verified Paid yet
   const isPaid = type === 'booking' ? booking?.paymentStatus === 'PAID' : order?.paymentStatus === 'PAID';
 
-  if (!isPaid) {
+  if (!isPaid && !isBookingEnquiry) {
     return (
       <main className="pt-32 min-h-screen bg-[var(--background)] text-[var(--foreground)] flex flex-col justify-between">
         <div className="max-w-[90vw] mx-auto pb-24 w-full flex-grow flex items-center justify-center">
@@ -156,10 +156,16 @@ export default function ConfirmationPage({ searchParams }: PageProps) {
             </div>
             <div>
               <h1 className="font-serif text-4xl text-[var(--accent-purple)] tracking-tight print:text-black">
-                {type === 'booking' ? 'Booking Confirmed!' : 'Thank You for Your Purchase!'}
+                {isBookingEnquiry
+                  ? 'Booking Request Received!'
+                  : type === 'booking'
+                    ? 'Booking Confirmed!'
+                    : 'Thank You for Your Purchase!'}
               </h1>
               <p className="font-sans text-sm text-[var(--text-muted)] mt-1">
-                Your transaction has been verified successfully.
+                {isBookingEnquiry
+                  ? 'Your request has been saved and the studio will follow up with pricing or confirmation details.'
+                  : 'Your transaction has been verified successfully.'}
               </p>
             </div>
           </div>
@@ -178,7 +184,7 @@ export default function ConfirmationPage({ searchParams }: PageProps) {
               <div>
                 <span className="block text-[var(--text-muted)]">Paystack Reference</span>
                 <span className="font-semibold text-gray-500 mt-0.5 block truncate pr-4">
-                  {type === 'booking' ? booking?.paystackReference : order?.paystackReference}
+                  {isBookingEnquiry ? 'Not applicable' : type === 'booking' ? booking?.paystackReference : order?.paystackReference}
                 </span>
               </div>
               
@@ -261,7 +267,9 @@ export default function ConfirmationPage({ searchParams }: PageProps) {
             </div>
 
             <div className="bg-[var(--surface-soft)]/40 rounded-xl p-4 flex justify-between items-baseline mt-4 border border-[var(--border-soft)] print:bg-white print:border-black">
-              <span className="font-serif text-base font-bold text-[var(--foreground)]">Amount Paid</span>
+              <span className="font-serif text-base font-bold text-[var(--foreground)]">
+                {isBookingEnquiry ? 'Quoted Amount' : 'Amount Paid'}
+              </span>
               <span className="font-mono text-xl font-bold text-[var(--accent-orange)] print:text-black">
                 ₦{type === 'booking' ? booking?.total.toLocaleString() : order?.total.toLocaleString()}
               </span>

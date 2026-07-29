@@ -3,15 +3,13 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import { useCart } from '@/lib/context/CartContext';
 import { validateOrderInput, ValidationError } from '@/lib/validation';
 import { ArrowLeft, CreditCard, ShoppingBag, Truck, MapPin } from 'lucide-react';
 import Footer from '@/components/Footer';
 
 export default function CheckoutPage() {
-  const router = useRouter();
-  const { cart, cartSubtotal, cartCount, clearCart } = useCart();
+  const { cart, cartSubtotal } = useCart();
 
   // Contact details
   const [firstName, setFirstName] = useState('');
@@ -94,7 +92,6 @@ export default function CheckoutPage() {
             price: item.price,
             quantity: 1,
           })),
-          amount: grandTotal,
         }),
       });
 
@@ -110,9 +107,9 @@ export default function CheckoutPage() {
       } else {
         throw new Error('Server did not return a transaction URL');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Checkout submit error:', err);
-      setSubmitError(err.message || 'An unexpected error occurred. Please try again.');
+      setSubmitError(err instanceof Error ? err.message : 'An unexpected error occurred. Please try again.');
       setLoading(false);
     }
   };

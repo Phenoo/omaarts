@@ -3,24 +3,29 @@ import { adminDb, isConfigured } from '@/lib/firebase/admin';
 import { calculateActivityPrice } from '@/lib/utils/pricing';
 import { Activity, Artwork } from '@/lib/types';
 
+function errorResponse(error: string, status: number) {
+  return NextResponse.json({ success: false, error }, { status });
+}
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : 'Internal server error.';
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { type } = body;
 
     if (!isConfigured) {
-      return NextResponse.json({
-        success: false,
-        error: 'Firebase Admin credentials are not configured in your project settings. Please configure FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY.'
-      });
+      return errorResponse(
+        'Firebase Admin credentials are not configured in your project settings. Please configure FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY.',
+        500
+      );
     }
 
     const paystackSecret = process.env.PAYSTACK_SECRET_KEY;
     if (!paystackSecret) {
-      return NextResponse.json({
-        success: false,
-        error: 'Paystack is not configured on the server.'
-      });
+      return errorResponse('Paystack is not configured on the server.', 500);
     }
 
     const origin = new URL(request.url).origin;
@@ -41,12 +46,20 @@ export async function POST(request: Request) {
         bookingNotes,
       } = body;
 
+      if (!activityId || !email || !firstName || !lastName || !phone || !date || !startTime) {
+        return errorResponse('Missing required booking details.', 400);
+      }
+
       // 1. Fetch activity from DB (trusted source)
       const actDoc = await adminDb.collection('activities').doc(activityId).get();
       if (!actDoc.exists) {
-        return NextResponse.json({ error: 'Activity not found.' }, { status: 404 });
+        return errorResponse('Activity not found.', 404);
       }
       const activity = { id: actDoc.id, ...actDoc.data() } as Activity;
+
+      if (!activity.active || !activity.bookingEnabled) {
+        return errorResponse('This activity is not currently available for booking.', 400);
+      }
 
       // 2. Validate time slots & date availability (basic checks)
       const blockedDoc = await adminDb.collection('blockedDates')
@@ -56,15 +69,21 @@ export async function POST(request: Request) {
       if (!blockedDoc.empty) {
         const block = blockedDoc.docs[0].data();
         if (block.isFullClosure || (block.blockedSlots && block.blockedSlots.includes(startTime))) {
-          return NextResponse.json({ error: 'Selected date or time slot is unavailable.' }, { status: 400 });
+          return errorResponse('Selected date or time slot is unavailable.', 400);
         }
       }
 
       // 3. Find variant if applicable
       const variant = activity.variants.find((v) => v.id === variantId) || null;
+      const isEnquiryOnly = activity.pricingModel === 'BOOKING_ONLY' || activity.pricingModel === 'CUSTOM_QUOTE';
+
+      if (activity.pricingModel === 'VARIANT' && activity.variants.length > 0 && !variant) {
+        return errorResponse('Please select a valid activity option before continuing.', 400);
+      }
 
       // 4. Calculate price securely
       const priceResult = calculateActivityPrice(activity, variant, numberOfGuests, durationHours);
+      const bookingTotal = priceResult.total;
 
       // 5. Generate transaction reference
       const reference = `PSB-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
@@ -90,17 +109,27 @@ export async function POST(request: Request) {
         numberOfGuests,
         specialRequests: specialRequests || '',
         bookingNotes: bookingNotes || '',
-        subtotal: body.amount ? body.amount : priceResult.subtotal,
-        total: body.amount || priceResult.total,
+        subtotal: priceResult.subtotal,
+        total: bookingTotal,
         currency: 'NGN',
+        paymentMode: isEnquiryOnly ? 'ENQUIRY' : 'PAYSTACK',
         paymentStatus: 'PENDING',
         bookingStatus: 'PENDING',
-        paystackReference: reference,
+        paystackReference: isEnquiryOnly ? '' : reference,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
 
       await bookingRef.set(pendingBooking);
+
+      if (isEnquiryOnly) {
+        return NextResponse.json({
+          success: true,
+          bookingId: bookingRef.id,
+          requiresPayment: false,
+          message: 'Your booking enquiry has been received.',
+        });
+      }
 
       // 7. Request Paystack initialization
       const paystackRes = await fetch('https://api.paystack.co/transaction/initialize', {
@@ -111,7 +140,7 @@ export async function POST(request: Request) {
         },
         body: JSON.stringify({
           email,
-          amount: (body.amount || priceResult.total) * 100, // Paystack amount is in kobo (minor unit)
+          amount: bookingTotal * 100, // Paystack amount is in kobo (minor unit)
           reference,
           callback_url: `${origin}/checkout/confirmation?type=booking&id=${bookingRef.id}`,
           metadata: {
@@ -123,8 +152,8 @@ export async function POST(request: Request) {
       });
 
       const paystackData = await paystackRes.json();
-      if (!paystackData.status) {
-        throw new Error(paystackData.message || 'Paystack initialization failed');
+      if (!paystackRes.ok || !paystackData.status) {
+        return errorResponse(paystackData.message || 'Paystack initialization failed.', 502);
       }
 
       return NextResponse.json({
@@ -146,7 +175,7 @@ export async function POST(request: Request) {
       } = body;
 
       if (!items || items.length === 0) {
-        return NextResponse.json({ error: 'No items in cart.' }, { status: 400 });
+        return errorResponse('No items in cart.', 400);
       }
 
       const verifiedItems = [];
@@ -157,13 +186,13 @@ export async function POST(request: Request) {
       for (const item of items) {
         const artworkDoc = await adminDb.collection('artworks').doc(item.artworkId).get();
         if (!artworkDoc.exists) {
-          return NextResponse.json({ error: `Artwork not found: ${item.artworkId}` }, { status: 404 });
+          return errorResponse(`Artwork not found: ${item.artworkId}`, 404);
         }
         
         const artwork = artworkDoc.data() as Artwork;
         
         if (artwork.status !== 'AVAILABLE' || !artwork.availableForSale || artwork.inventoryQty < 1) {
-          return NextResponse.json({ error: `Artwork "${artwork.title}" is no longer available.` }, { status: 400 });
+          return errorResponse(`Artwork "${artwork.title}" is no longer available.`, 400);
         }
 
         verifiedItems.push({
@@ -178,7 +207,7 @@ export async function POST(request: Request) {
       // 2. Add delivery fee
       const defaultDeliveryFee = 3000;
       const deliveryFee = deliveryOption === 'delivery' ? defaultDeliveryFee : 0;
-      const grandTotal = body.amount || (subtotal + deliveryFee);
+      const grandTotal = subtotal + deliveryFee;
 
       // 3. Generate reference
       const reference = `PSO-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
@@ -230,8 +259,8 @@ export async function POST(request: Request) {
       });
 
       const paystackData = await paystackRes.json();
-      if (!paystackData.status) {
-        throw new Error(paystackData.message || 'Paystack initialization failed');
+      if (!paystackRes.ok || !paystackData.status) {
+        return errorResponse(paystackData.message || 'Paystack initialization failed.', 502);
       }
 
       return NextResponse.json({
@@ -241,14 +270,11 @@ export async function POST(request: Request) {
       });
 
     } else {
-      return NextResponse.json({ error: 'Invalid checkout type.' }, { status: 400 });
+      return errorResponse('Invalid checkout type.', 400);
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('API checkout initialization error:', error);
-    return NextResponse.json({
-      success: false,
-      error: error.message || 'Internal server error.'
-    });
+    return errorResponse(getErrorMessage(error), 500);
   }
 }
 export const dynamic = 'force-dynamic';

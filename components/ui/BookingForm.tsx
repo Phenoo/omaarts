@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Activity, ActivityVariant } from '../../lib/types';
 import DatePicker from './DatePicker';
 import TimeSlotPicker from './TimeSlotPicker';
@@ -8,12 +9,20 @@ import { calculateActivityPrice } from '../../lib/utils/pricing';
 import { validateBookingInput, ValidationError } from '../../lib/validation';
 import { Calendar, Users, Clock, CreditCard, ClipboardList } from 'lucide-react';
 
+interface BookingSubmitResult {
+  bookingId?: string;
+  authorizationUrl?: string;
+  success?: boolean;
+  error?: string;
+}
+
 interface BookingFormProps {
   activity: Activity;
-  onSuccess?: (bookingData: any) => void;
+  onSuccess?: (bookingData: BookingSubmitResult) => void;
 }
 
 export default function BookingForm({ activity, onSuccess }: BookingFormProps) {
+  const router = useRouter();
   // Contact details
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -29,7 +38,6 @@ export default function BookingForm({ activity, onSuccess }: BookingFormProps) {
   const [guests, setGuests] = useState(1);
   const [durationHours, setDurationHours] = useState(1);
   const [specialRequests, setSpecialRequests] = useState('');
-  const [bookingNotes, setBookingNotes] = useState('');
 
   // UI States
   const [errors, setErrors] = useState<ValidationError[]>([]);
@@ -102,12 +110,10 @@ export default function BookingForm({ activity, onSuccess }: BookingFormProps) {
           numberOfGuests: guests,
           durationHours: activity.pricingModel === 'TIERED' || activity.pricingModel === 'PER_HOUR' ? durationHours : 1,
           specialRequests,
-          bookingNotes,
-          amount: priceResult.total,
         }),
       });
 
-      const resData = await response.json();
+      const resData: BookingSubmitResult = await response.json();
 
       if (!response.ok || resData.success === false) {
         throw new Error(resData.error || 'Failed to initialize booking payment');
@@ -116,12 +122,15 @@ export default function BookingForm({ activity, onSuccess }: BookingFormProps) {
       if (resData.authorizationUrl) {
         // Redirect client to Paystack Gateway checkout page
         window.location.href = resData.authorizationUrl;
+      } else if (resData.bookingId) {
+        onSuccess?.(resData);
+        router.push(`/checkout/confirmation?type=booking&id=${resData.bookingId}`);
       } else {
-        throw new Error('No checkout URL returned from payment server');
+        throw new Error('Booking request was created, but no follow-up destination was returned.');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Booking checkout error:', err);
-      setSubmitError(err.message || 'An unexpected error occurred. Please try again.');
+      setSubmitError(err instanceof Error ? err.message : 'An unexpected error occurred. Please try again.');
       setLoading(false);
     }
   };
@@ -415,7 +424,9 @@ export default function BookingForm({ activity, onSuccess }: BookingFormProps) {
       >
         <CreditCard size={16} />
         {loading 
-          ? 'Initializing Secure Checkout...' 
+          ? isBookingOnly
+            ? 'Sending Enquiry...'
+            : 'Initializing Secure Checkout...'
           : isBookingOnly 
             ? 'Send Enquiry' 
             : `Pay ₦${priceResult.total.toLocaleString()}`

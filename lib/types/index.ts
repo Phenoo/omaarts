@@ -99,6 +99,7 @@ export interface Booking {
   subtotal: number;
   total: number;
   currency: 'NGN';
+  paymentMode?: 'PAYSTACK' | 'ENQUIRY';
   paymentStatus: PaymentStatus;
   bookingStatus: BookingStatus;
   paystackReference?: string;
@@ -267,8 +268,8 @@ export interface AuditLog {
   action: string; // e.g. "PRICE_CHANGED", "ARTWORK_CREATED", "BOOKING_CANCELLED"
   resourceType: 'activity' | 'artwork' | 'booking' | 'order' | 'sale' | 'settings';
   resourceId: string;
-  beforeInfo?: Record<string, any>;
-  afterInfo?: Record<string, any>;
+  beforeInfo?: Record<string, unknown>;
+  afterInfo?: Record<string, unknown>;
   timestamp: string;
 }
 
