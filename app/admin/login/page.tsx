@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -10,7 +10,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { UserDoc } from '@/lib/types';
 import { ShieldAlert, LogIn, Lock, Mail } from 'lucide-react';
 
-export default function AdminLoginPage() {
+function AdminLoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const errorQuery = searchParams.get('error');
@@ -249,4 +249,19 @@ export default function AdminLoginPage() {
     </main>
   );
 }
+
+export default function AdminLoginPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-[var(--surface-strong)] flex items-center justify-center p-6 relative overflow-hidden">
+        <div className="w-full max-w-md bg-white/95 rounded-3xl shadow-2xl p-8 md:p-10 border border-white/20 z-10 flex flex-col items-center justify-center min-h-[400px]">
+          <p className="font-mono text-xs text-[var(--text-muted)] animate-pulse">Loading Admin Portal...</p>
+        </div>
+      </main>
+    }>
+      <AdminLoginContent />
+    </Suspense>
+  );
+}
+
 export const dynamic = 'force-dynamic';
