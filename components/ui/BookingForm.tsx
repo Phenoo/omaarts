@@ -96,7 +96,7 @@ export default function BookingForm({ activity, onSuccess }: BookingFormProps) {
           email,
           phone,
           activityId: activity.id,
-          variantId: selectedVariant?.id || null,
+          variantId: selectedVariant?.id || "null",
           date,
           startTime,
           numberOfGuests: guests,
