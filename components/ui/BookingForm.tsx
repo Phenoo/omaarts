@@ -108,7 +108,7 @@ export default function BookingForm({ activity, onSuccess }: BookingFormProps) {
 
       const resData = await response.json();
 
-      if (!response.ok) {
+      if (!response.ok || resData.success === false) {
         throw new Error(resData.error || 'Failed to initialize booking payment');
       }
 

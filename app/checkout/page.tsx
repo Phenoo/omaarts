@@ -99,7 +99,7 @@ export default function CheckoutPage() {
 
       const resData = await response.json();
 
-      if (!response.ok) {
+      if (!response.ok || resData.success === false) {
         throw new Error(resData.error || 'Checkout initialization failed');
       }
 

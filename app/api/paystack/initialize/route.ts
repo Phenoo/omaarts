@@ -10,13 +10,17 @@ export async function POST(request: Request) {
 
     if (!isConfigured) {
       return NextResponse.json({
-        error: 'Firebase Admin credentials are not configured in your .env.local file. Please add FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY.'
-      }, { status: 500 });
+        success: false,
+        error: 'Firebase Admin credentials are not configured in your project settings. Please configure FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY.'
+      });
     }
 
     const paystackSecret = process.env.PAYSTACK_SECRET_KEY;
     if (!paystackSecret) {
-      return NextResponse.json({ error: 'Paystack is not configured on the server.' }, { status: 500 });
+      return NextResponse.json({
+        success: false,
+        error: 'Paystack is not configured on the server.'
+      });
     }
 
     const origin = new URL(request.url).origin;
@@ -241,7 +245,10 @@ export async function POST(request: Request) {
     }
   } catch (error: any) {
     console.error('API checkout initialization error:', error);
-    return NextResponse.json({ error: error.message || 'Internal server error.' }, { status: 500 });
+    return NextResponse.json({
+      success: false,
+      error: error.message || 'Internal server error.'
+    });
   }
 }
 export const dynamic = 'force-dynamic';
