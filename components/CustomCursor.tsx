@@ -66,14 +66,14 @@ export default function CustomCursor() {
     if (isHovering) {
       gsap.to(cursor, {
         scale: 2.5,
-        backgroundColor: '#00E5FF', // Accent color
+        backgroundColor: '#f47b20',
         mixBlendMode: 'difference',
         duration: 0.3,
       });
     } else {
       gsap.to(cursor, {
         scale: 1,
-        backgroundColor: '#1A1A1A', // Default dark
+        backgroundColor: '#4a2598',
         mixBlendMode: 'normal',
         duration: 0.3,
       });
@@ -84,7 +84,7 @@ export default function CustomCursor() {
     <div
       ref={cursorRef}
       className="fixed top-0 left-0 w-4 h-4 rounded-full pointer-events-none z-[10000] -translate-x-1/2 -translate-y-1/2"
-      style={{ backgroundColor: '#1A1A1A' }}
+      style={{ backgroundColor: '#4a2598' }}
     />
   );
 }

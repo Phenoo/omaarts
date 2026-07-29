@@ -1,24 +1,32 @@
 'use client';
 
+import Image from 'next/image';
 
 const SOCIALS = [
     { label: "Instagram", href: "https://instagram.com" },
     { label: "Twitter / X", href: "https://twitter.com" },
     { label: "LinkedIn", href: "https://linkedin.com" },
     { label: "TikTok", href: "https://tiktok.com" },
-    { label: "WhatsApp", href: "https://whatsapp.com" },
-    { label: "Email", href: "mailto:hello@artsbyoma.com" },
+    { label: "WhatsApp", href: "https://wa.me/2348167009545" },
+    { label: "Email", href: "mailto:achebeoma963@gmail.com" },
 ];
 
 export default function Footer() {
     return (
-      <footer className="w-full py-16 bg-[#121212] text-[#E0E0E0] border-t border-[#333]">
+      <footer className="w-full py-16 bg-[var(--surface-strong)] text-white border-t border-[var(--accent-primary)]/25">
         <div className="max-w-[90vw] mx-auto flex flex-col gap-12">
           
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
               <div>
-                  <h4 className="font-serif text-3xl mb-2 text-[var(--accent-primary)] [text-shadow:0_0_10px_rgba(0,229,255,0.3)]">Arts by Oma</h4>
-                  <p className="font-sans text-sm text-gray-400 max-w-sm">
+                  <div className="relative h-14 md:h-16 w-[210px] md:w-[280px] overflow-hidden mb-3">
+                    <Image
+                      src="/images/oma-logo.jpg"
+                      alt="Artsy by Oma logo"
+                      fill
+                      className="object-contain scale-[1.3] origin-left"
+                    />
+                  </div>
+                  <p className="font-sans text-sm text-white/70 max-w-sm">
                       Vibrant narratives from the heart of Awka.
                   </p>
               </div>
@@ -30,7 +38,7 @@ export default function Footer() {
                           href={social.href} 
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="hover:text-[var(--accent-secondary)] transition-colors hover:[text-shadow:0_0_10px_var(--accent-secondary)]"
+                          className="hover:text-[var(--accent-orange)] transition-colors"
                       >
                           {social.label}
                       </a>
@@ -38,9 +46,9 @@ export default function Footer() {
               </div>
           </div>
   
-          <div className="flex flex-col md:flex-row justify-between items-end border-t border-[#333] pt-8 gap-4">
-              <span className="font-mono text-[10px] text-gray-500">© {new Date().getFullYear()} ARTS BY OMA. ALL RIGHTS RESERVED.</span>
-              <span className="font-mono text-[10px] text-gray-500">
+          <div className="flex flex-col md:flex-row justify-between items-end border-t border-white/15 pt-8 gap-4">
+              <span className="font-mono text-[10px] text-white/55">© {new Date().getFullYear()} ARTS BY OMA. ALL RIGHTS RESERVED.</span>
+              <span className="font-mono text-[10px] text-white/55">
                   DESIGNED BY EZE
               </span>
           </div>

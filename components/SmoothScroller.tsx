@@ -6,8 +6,8 @@ import Lenis from 'lenis';
 export default function SmoothScroller({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const lenis = new Lenis({
-      lerp: 0.1,
-      duration: 1.5,
+      duration: 1.0,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // exponential easing
       smoothWheel: true,
     });
 

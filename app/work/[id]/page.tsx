@@ -1,53 +1,14 @@
 import Link from 'next/link';
 import Image from 'next/image';
-
-// Mock data lookup (ideally fetched from CMS/API)
-const ARTWORKS: Record<string, { title: string; year: string; medium: string; dimensions: string; price: string; description: string; image: string }> = {
-    'lagos-heat': {
-        title: 'Awka Heat',
-        year: '2024',
-        medium: 'Oil and Acrylic on Canvas',
-        dimensions: '150 x 200 cm',
-        price: '$4,500',
-        description: 'A study of the frenetic energy of Balogun market at noon. The red hues symbolize the heat and passion of the city.',
-        image: '/images/archive-1.png'
-    },
-    'indigo-dreams': {
-        title: 'Indigo Dreams',
-        year: '2023',
-        medium: 'Adire fabric and Mixed Media',
-        dimensions: '120 x 120 cm',
-        price: '$3,200',
-        description: 'Inspired by the traditional dyeing pits of Kano. A meditation on heritage and fading memory.',
-        image: '/images/archive-2.png'
-    },
-    'market-noise': {
-        title: 'Market Noise',
-        year: '2025',
-        medium: 'Textured Acrylic',
-        dimensions: '180 x 180 cm',
-        price: '$5,000',
-        description: 'Visualizing sound through aggressive brushstrokes and heavy impasto.',
-        image: '/images/hero-texture.png'
-    },
-    'ancestral': {
-        title: 'Ancestral',
-        year: '2024',
-        medium: 'Installation / Photography',
-        dimensions: 'Variable',
-        price: '$8,000',
-        description: 'A contemporary reimagining of ancestral shrines using industrial materials.',
-        image: '/images/artist-studio.png'
-    }
-};
+import { SELECTED_WORKS, SELECTED_WORKS_BY_ID } from '@/lib/selectedWorks';
 
 export function generateStaticParams() {
-  return Object.keys(ARTWORKS).map((id) => ({ id }));
+  return SELECTED_WORKS.map((art) => ({ id: art.id }));
 }
 
 export default async function ArtworkPage({ params }: { params: Promise<{ id: string }> }) { // Updated for Next.js 15
     const { id } = await params;
-    const art = ARTWORKS[id];
+    const art = SELECTED_WORKS_BY_ID[id];
 
     if (!art) {
         return (

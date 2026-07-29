@@ -10,11 +10,11 @@ export default function AboutPage() {
         
         {/* 1. Intro / Artist Statement */}
         <section className="mb-20 text-center">
-            <h1 className="font-serif text-5xl md:text-7xl mb-8 text-white tracking-tighter mix-blend-screen">
-                I am a multidisciplinary artist exploring memory, identity, and the vibrant chaos of Awka through mixed media and aggressive color.
+            <h1 className="font-serif text-5xl md:text-7xl mb-8 text-[var(--foreground)] tracking-tighter">
+                I am a Nigerian contemporary artist exploring cultural identity, womanhood, and resilience through bold color and layered texture.
             </h1>
             <p className="font-mono text-sm uppercase tracking-widest opacity-60">
-                Oil • Acrylic • Digital • Installation
+                Acrylic • Mixed Media • Contemporary Practice
             </p>
         </section>
 
@@ -37,13 +37,13 @@ export default function AboutPage() {
             <h2 className="font-mono text-sm uppercase tracking-widest text-[var(--accent-orange)] mb-8">The Story</h2>
             <div className="space-y-6 font-sans text-lg leading-relaxed opacity-90">
                 <p>
-                    I was born in 1998 in Awka, Nigeria, a city that assaults the senses in the most beautiful way. Growing up, I was surrounded by the rhythmic clash of traditional pattern and modern concrete. This duality became the foundation of my visual language.
+                    Oma Achebe is a Nigerian contemporary artist based in Awka, Anambra State. She works primarily with acrylics and mixed media, building images through layered textures, movement, and expressive color.
                 </p>
                 <p>
-                    After training at the Slade School of Fine Art in London, I returned home to reclaim my narrative. My earlier work was quiet and minimalist, a result of academic conditioning. But Awka doesn&apos;t whisper. It screams.
+                    Her work draws inspiration from Igbo traditions, everyday life, and the dialogue between history and modernity. Across each piece, she examines themes of cultural identity, womanhood, and resilience.
                 </p>
                 <p>
-                    Today, my work embraces <strong>radical vibrancy</strong>. I use color not just as decoration, but as a political statement—a reclaiming of space, joy, and visibility in a world that often demands silence.
+                    Through this practice, Oma continues to create work that bridges heritage and contemporary expression while reflecting her journey as both artist and entrepreneur.
                 </p>
             </div>
         </section>
@@ -53,10 +53,10 @@ export default function AboutPage() {
             <h2 className="font-mono text-sm uppercase tracking-widest text-[var(--accent-purple)] mb-8">The Process</h2>
             <div className="space-y-6 font-sans text-lg leading-relaxed opacity-90">
                 <p>
-                    My process is a physical dialogue with the canvas. It often begins with chaotic, gestural charcoal sketches—capturing the raw energy of a fleeting thought.
+                    Oma&apos;s process combines intuitive mark-making with deliberate layering. She builds surfaces gradually, allowing color, texture, and shape to carry both emotional energy and cultural memory.
                 </p>
                 <p>
-                    From there, I layer oil and acrylics, scraping back paint to reveal the history underneath. I treat digital tools the same way, breaking pixels to find the ghost in the machine. It&apos;s about finding the balance between control and surrender.
+                    Working mostly in acrylics and mixed media, she moves between experimentation and structure to produce pieces that feel grounded in place yet open to contemporary interpretation.
                 </p>
             </div>
         </section>
@@ -65,23 +65,19 @@ export default function AboutPage() {
         <section className="mb-20">
             <h2 className="font-mono text-sm uppercase tracking-widest text-gray-500 mb-8">Experience</h2>
             <ul className="space-y-4 font-mono text-sm">
-                <li className="flex flex-col md:flex-row md:justify-between border-b border-[#333] pb-4">
-                    <span className="text-[var(--accent-purple)]">2025 — Neon Ancestors</span>
-                    <span className="opacity-60">Serpentine Gallery, London (Solo)</span>
+                <li className="flex flex-col md:flex-row md:justify-between border-b border-[var(--border-soft)] pb-4">
+                    <span className="text-[var(--accent-purple)]">Community Art Showcases</span>
+                    <span className="opacity-60">Featured in local and community art events</span>
                 </li>
-                <li className="flex flex-col md:flex-row md:justify-between border-b border-[#333] pb-4">
-                    <span className="text-[var(--accent-purple)]">2024 — Awka Noise</span>
-                    <span className="opacity-60">Rele Gallery, Awka (Solo)</span>
-                </li>
-                <li className="flex flex-col md:flex-row md:justify-between border-b border-[#333] pb-4">
-                    <span className="text-[var(--accent-purple)]">2023 — Digital Masquerade</span>
-                    <span className="opacity-60">1-54 Art Fair, New York (Group)</span>
+                <li className="flex flex-col md:flex-row md:justify-between border-b border-[var(--border-soft)] pb-4">
+                    <span className="text-[var(--accent-purple)]">Paint and Splash Fiesta</span>
+                    <span className="opacity-60">Host of an interactive art experience in Awka</span>
                 </li>
             </ul>
         </section>
 
         {/* 6. Services / Availability */}
-        <section className="mb-20 bg-[#1A1A1A] p-8 -mx-8 md:rounded-lg">
+        <section className="mb-20 bg-[var(--surface-soft)] p-8 -mx-8 md:rounded-lg">
             <h2 className="font-mono text-sm uppercase tracking-widest text-[var(--accent-orange)] mb-4">Availability</h2>
             <p className="font-sans text-lg mb-6 opacity-90">
                 I accept a limited number of commissions per year, focusing on large-scale residential pieces and brand collaborations that align with my ethos.
@@ -90,7 +86,7 @@ export default function AboutPage() {
                 <div className="w-2 h-2 bg-[var(--accent-purple)] rounded-full animate-pulse"></div>
                 <span className="font-mono text-xs uppercase tracking-widest">Booking Late 2026</span>
             </div>
-            <Link href="/contact" className="inline-block mt-8 text-[var(--accent-orange)] border-b border-[var(--accent-orange)] font-mono text-sm uppercase tracking-widest hover:text-white hover:border-white transition-colors">
+            <Link href="/contact" className="inline-block mt-8 text-[var(--accent-orange)] border-b border-[var(--accent-orange)] font-mono text-sm uppercase tracking-widest hover:text-[var(--accent-purple)] hover:border-[var(--accent-purple)] transition-colors">
                 Let&apos;s Discuss a Project
             </Link>
         </section>
@@ -99,7 +95,7 @@ export default function AboutPage() {
         <section className="mb-12">
             <h2 className="font-mono text-sm uppercase tracking-widest text-[var(--accent-purple)] mb-8">Beyond the Canvas</h2>
             <p className="font-sans text-lg leading-relaxed opacity-90">
-                When I&apos;m not in the studio covered in paint, you can find me hunting for vintage Afrobeat vinyls in Yaba or hiking the hills of Idanre. I believe that to create honest art, you must live a life worth documenting.
+                Through collaborative events and interactive experiences, Oma invites diverse audiences into her creative world and expands how people engage with contemporary art.
             </p>
         </section>
 

@@ -15,7 +15,7 @@ const QUOTES = [
 
 export default function Testimonials() {
   return (
-    <section className="w-full py-32 bg-[#0a0a0a] text-[#F9F9F9]">
+    <section className="w-full py-32 bg-[var(--surface-soft)] text-[var(--foreground)]">
       <div className="max-w-[90vw] mx-auto flex flex-col md:flex-row gap-24">
         <div className="w-full md:w-1/3">
           <h2 className="font-mono text-sm uppercase tracking-widest text-[var(--accent-purple)]">
@@ -25,7 +25,7 @@ export default function Testimonials() {
 
         <div className="w-full md:w-2/3 flex flex-col gap-16">
           {QUOTES.map((quote, i) => (
-            <div key={i} className="border-l-2 border-[#333] pl-8">
+            <div key={i} className="border-l-2 border-[var(--border-soft)] pl-8">
               <p className="font-serif text-2xl md:text-3xl leading-relaxed italic opacity-90">
                 &quot;{quote.text}&quot;
               </p>

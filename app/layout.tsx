@@ -1,15 +1,30 @@
 import type { Metadata } from "next";
 import { DM_Sans } from "next/font/google";
+import { Space_Grotesk } from "next/font/google";
+import { IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 
 import SmoothScroller from '../components/SmoothScroller';
 import CustomCursor from '../components/CustomCursor';
 import NavigationOverlay from '../components/NavigationOverlay';
+import { CartProvider } from '@/lib/context/CartContext';
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
   variable: "--font-dm-sans",
   weight: ["400", "500", "700"],
+});
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-space-grotesk",
+  weight: ["500", "700"],
+});
+
+const ibmPlexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  variable: "--font-ibm-plex-mono",
+  weight: ["400", "500"],
 });
 
 export const metadata: Metadata = {
@@ -24,13 +39,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${dmSans.variable} antialiased`}>
-        <SmoothScroller>
-          <CustomCursor />
-          <NavigationOverlay />
-          <div className="grain-overlay" />
-          {children}
-        </SmoothScroller>
+      <body className={`${dmSans.variable} ${spaceGrotesk.variable} ${ibmPlexMono.variable} antialiased`}>
+        <CartProvider>
+          <SmoothScroller>
+            <CustomCursor />
+            <NavigationOverlay />
+            {children}
+          </SmoothScroller>
+        </CartProvider>
       </body>
     </html>
   );

@@ -9,7 +9,7 @@ export default function ServicesPage() {
       <div className="max-w-[90vw] mx-auto pb-24">
         
         {/* HERO */}
-        <div className="mb-24 border-b border-[#333] pb-12">
+        <div className="mb-24 border-b border-[var(--border-soft)] pb-12">
             <h1 className="font-serif text-6xl md:text-8xl text-[var(--accent-purple)] tracking-tight leading-[0.9] mb-8">
                 SERVICES &<br/>
                 COMMISSIONS
@@ -23,7 +23,7 @@ export default function ServicesPage() {
         {/* SERVICE OFFERINGS */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-32">
             {/* Service 1 */}
-            <div className="border border-[#333] p-8 hover:border-[var(--accent-orange)] transition-colors group">
+            <div className="border border-[var(--border-soft)] p-8 hover:border-[var(--accent-orange)] transition-colors group bg-white">
                 <div className="w-12 h-12 bg-[var(--accent-purple)] rounded-full mb-6 group-hover:bg-[var(--accent-orange)] transition-colors" />
                 <h3 className="font-serif text-3xl mb-4">Private Commissions</h3>
                 <p className="font-sans opacity-70 mb-6 leading-relaxed">
@@ -37,7 +37,7 @@ export default function ServicesPage() {
             </div>
 
             {/* Service 2 */}
-            <div className="border border-[#333] p-8 hover:border-[var(--accent-orange)] transition-colors group">
+            <div className="border border-[var(--border-soft)] p-8 hover:border-[var(--accent-orange)] transition-colors group bg-white">
                 <div className="w-12 h-12 bg-[var(--accent-purple)] rounded-full mb-6 group-hover:bg-[var(--accent-orange)] transition-colors" />
                 <h3 className="font-serif text-3xl mb-4">Murals & Installations</h3>
                 <p className="font-sans opacity-70 mb-6 leading-relaxed">
@@ -51,7 +51,7 @@ export default function ServicesPage() {
             </div>
 
             {/* Service 3 */}
-            <div className="border border-[#333] p-8 hover:border-[var(--accent-orange)] transition-colors group">
+            <div className="border border-[var(--border-soft)] p-8 hover:border-[var(--accent-orange)] transition-colors group bg-white">
                 <div className="w-12 h-12 bg-[var(--accent-purple)] rounded-full mb-6 group-hover:bg-[var(--accent-orange)] transition-colors" />
                 <h3 className="font-serif text-3xl mb-4">Brand Collaboration</h3>
                 <p className="font-sans opacity-70 mb-6 leading-relaxed">
@@ -69,22 +69,22 @@ export default function ServicesPage() {
         <section className="mb-32">
             <h2 className="font-mono text-sm uppercase tracking-widest text-[var(--accent-orange)] mb-12">The Process</h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                <div className="relative pl-8 border-l border-[#333]">
+                <div className="relative pl-8 border-l border-[var(--border-soft)]">
                     <span className="absolute -left-[5px] top-0 w-2 h-2 bg-[var(--accent-purple)] rounded-full" />
                     <h4 className="font-serif text-2xl mb-2">01. Consult</h4>
                     <p className="font-sans text-sm opacity-60">We discuss your vision, space, and budget to define the scope.</p>
                 </div>
-                <div className="relative pl-8 border-l border-[#333]">
+                <div className="relative pl-8 border-l border-[var(--border-soft)]">
                     <span className="absolute -left-[5px] top-0 w-2 h-2 bg-[var(--accent-purple)] rounded-full" />
                     <h4 className="font-serif text-2xl mb-2">02. Proposal</h4>
                     <p className="font-sans text-sm opacity-60">I send sketches and a color palette for your approval.</p>
                 </div>
-                <div className="relative pl-8 border-l border-[#333]">
+                <div className="relative pl-8 border-l border-[var(--border-soft)]">
                     <span className="absolute -left-[5px] top-0 w-2 h-2 bg-[var(--accent-purple)] rounded-full" />
                     <h4 className="font-serif text-2xl mb-2">03. Creation</h4>
                     <p className="font-sans text-sm opacity-60">The work begins. Regular updates with photos and videos.</p>
                 </div>
-                <div className="relative pl-8 border-l border-[#333]">
+                <div className="relative pl-8 border-l border-[var(--border-soft)]">
                     <span className="absolute -left-[5px] top-0 w-2 h-2 bg-[var(--accent-purple)] rounded-full" />
                     <h4 className="font-serif text-2xl mb-2">04. Delivery</h4>
                     <p className="font-sans text-sm opacity-60">White-glove shipping and installation assistance.</p>
@@ -96,15 +96,15 @@ export default function ServicesPage() {
         <section className="mb-32 max-w-4xl">
             <h2 className="font-mono text-sm uppercase tracking-widest text-[var(--accent-orange)] mb-12">Common Questions</h2>
             <div className="space-y-8">
-                <div className="border-b border-[#333] pb-6">
+                <div className="border-b border-[var(--border-soft)] pb-6">
                     <h4 className="font-serif text-xl mb-2">What is the typical turnaround time?</h4>
                     <p className="font-sans opacity-60">For standard canvas commissions, allow 4-6 weeks. Large-scale murals may require 2-3 months planning and execution.</p>
                 </div>
-                <div className="border-b border-[#333] pb-6">
+                <div className="border-b border-[var(--border-soft)] pb-6">
                     <h4 className="font-serif text-xl mb-2">Do you ship internationally?</h4>
                     <p className="font-sans opacity-60">Yes, we work with specialized art logistics partners to ship safely to anywhere in the world.</p>
                 </div>
-                <div className="border-b border-[#333] pb-6">
+                <div className="border-b border-[var(--border-soft)] pb-6">
                     <h4 className="font-serif text-xl mb-2">Can I request specific colors?</h4>
                     <p className="font-sans opacity-60">Absolutely. While I maintain my artistic style, I am happy to work with a palette that harmonizes with your interior.</p>
                 </div>
@@ -117,7 +117,7 @@ export default function ServicesPage() {
             <p className="font-sans text-xl opacity-90 mb-12 max-w-xl mx-auto">
                 Let’s create something that defines your space. Slots for 2026 are filling up fast.
             </p>
-            <Link href="/contact" className="inline-block px-12 py-4 bg-white text-[var(--accent-purple)] font-mono text-xs uppercase tracking-widest hover:bg-[#121212] hover:text-white transition-colors rounded-full">
+            <Link href="/contact" className="inline-block px-12 py-4 bg-white text-[var(--accent-purple)] font-mono text-xs uppercase tracking-widest hover:bg-[var(--accent-orange)] hover:text-white transition-colors rounded-full">
                 Inquire Now
             </Link>
         </div>

@@ -40,9 +40,9 @@ export default function EventsTicker() {
   }, []);
 
   return (
-    <section className="relative w-full py-12 bg-[#0a0a0a] overflow-hidden border-t-2 border-[var(--accent-purple)]">
+    <section className="relative w-full py-12 bg-[var(--surface-strong)] overflow-hidden border-t-2 border-[var(--accent-purple)]">
       <div className="flex whitespace-nowrap" ref={wrapperRef}>
-         <div ref={trackRef} className="flex gap-16 text-[#F9F9F9] font-mono text-4xl uppercase tracking-tighter">
+         <div ref={trackRef} className="flex gap-16 text-white font-mono text-4xl uppercase tracking-tighter">
             {/* Render items twice for loop */}
             {[...EVENTS, ...EVENTS, ...EVENTS].map((event, i) => (
                 <div key={i} className="flex items-center gap-4">
