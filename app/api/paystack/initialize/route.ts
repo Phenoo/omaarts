@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getAdminContext } from '@/lib/firebase/admin';
 import { sendBookingRequestReceivedEmail } from '@/lib/email/resend';
 import { calculateActivityPrice } from '@/lib/utils/pricing';
-import { Activity, Artwork, Booking } from '@/lib/types';
+import { Activity, Artwork, Booking, TransactionalEmailPayload } from '@/lib/types';
 
 function errorResponse(error: string, status: number) {
   return NextResponse.json({ success: false, error }, { status });
@@ -10,6 +10,38 @@ function errorResponse(error: string, status: number) {
 
 function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : 'Internal server error.';
+}
+
+function normalizeTransactionalEmailPayload(payload: unknown): TransactionalEmailPayload | undefined {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    return undefined;
+  }
+
+  const { to, subject, html, text } = payload as Record<string, unknown>;
+
+  if (
+    typeof subject !== 'string' ||
+    subject.trim().length === 0 ||
+    typeof html !== 'string' ||
+    html.trim().length === 0 ||
+    typeof text !== 'string' ||
+    text.trim().length === 0
+  ) {
+    return undefined;
+  }
+
+  const normalizedTo = Array.isArray(to)
+    ? to.filter((value): value is string => typeof value === 'string' && value.trim().length > 0).map((value) => value.trim())
+    : typeof to === 'string' && to.trim().length > 0
+      ? [to.trim()]
+      : [];
+
+  return {
+    to: normalizedTo.length > 0 ? normalizedTo : undefined,
+    subject,
+    html,
+    text,
+  };
 }
 
 export async function POST(request: Request) {
@@ -46,6 +78,7 @@ export async function POST(request: Request) {
         durationHours,
         specialRequests,
         bookingNotes,
+        confirmationEmail,
       } = body;
 
       if (!activityId || !email || !firstName || !lastName || !phone || !date || !startTime) {
@@ -93,6 +126,7 @@ export async function POST(request: Request) {
       // 6. Write pending booking to Firestore
       const bookingRef = adminDb.collection('bookings').doc();
       const bookingNumber = `PSB-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+      const normalizedConfirmationEmail = normalizeTransactionalEmailPayload(confirmationEmail);
       const pendingBooking: Booking = {
         id: bookingRef.id,
         bookingNumber,
@@ -118,6 +152,7 @@ export async function POST(request: Request) {
         paymentStatus: 'PENDING',
         bookingStatus: 'PENDING',
         paystackReference: isEnquiryOnly ? '' : reference,
+        ...(normalizedConfirmationEmail ? { confirmationEmail: normalizedConfirmationEmail } : {}),
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };

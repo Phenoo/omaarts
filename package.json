@@ -18,14 +18,17 @@
     "lenis": "^1.1.20",
     "lucide-react": "^1.27.0",
     "next": "^16.1.1",
+    "nodemailer": "^9.0.3",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "resend": "^6.18.1",
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/nodemailer": "^8.0.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",

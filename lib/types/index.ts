@@ -77,6 +77,14 @@ export interface Category {
 export type BookingStatus = 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED';
 export type PaymentStatus = 'PENDING' | 'PAID' | 'FAILED';
 
+export interface TransactionalEmailPayload {
+  to?: string[];
+  from?: string;
+  subject: string;
+  html: string;
+  text: string;
+}
+
 export interface Booking {
   id: string;
   bookingNumber: string; // human-readable invoice style like PSB-2026-XXXX
@@ -103,6 +111,7 @@ export interface Booking {
   paymentStatus: PaymentStatus;
   bookingStatus: BookingStatus;
   paystackReference?: string;
+  confirmationEmail?: TransactionalEmailPayload;
   createdAt: string;
   updatedAt: string;
 }

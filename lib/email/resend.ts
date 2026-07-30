@@ -1,8 +1,22 @@
-import { Booking, Order } from '../types';
+import nodemailer from 'nodemailer';
+import { Booking, Order, TransactionalEmailPayload } from '../types';
 
 const resendApiKey = process.env.RESEND_API_KEY;
-const resendFromEmail = process.env.RESEND_FROM_EMAIL || 'Paint & Sip with Oma <onboarding@resend.dev>';
+const requiredSupportAddress = 'support@artsybyoma.com';
+const defaultSupportSender = `Arts by Oma <${requiredSupportAddress}>`;
+const smtpHost = process.env.SMTP_HOST;
+const smtpPort = Number(process.env.SMTP_PORT || 587);
+const smtpUser = process.env.SMTP_USER;
+const smtpPass = process.env.SMTP_PASS;
+const smtpSecure = process.env.SMTP_SECURE === 'true' || smtpPort === 465;
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://artsybyoma.com';
+
+function getApprovedSender(value?: string) {
+  return value?.includes(requiredSupportAddress) ? value : defaultSupportSender;
+}
+
+const resendFromEmail = getApprovedSender(process.env.RESEND_FROM_EMAIL);
+const smtpFromEmail = getApprovedSender(process.env.SMTP_FROM_EMAIL || process.env.RESEND_FROM_EMAIL);
 
 function getBookingReceiptUrl(bookingId: string) {
   return `${siteUrl}/checkout/confirmation?type=booking&id=${bookingId}`;
@@ -12,22 +26,71 @@ function getOrderReceiptUrl(orderId: string) {
   return `${siteUrl}/checkout/confirmation?type=order&id=${orderId}`;
 }
 
-async function sendEmail(payload: { to: string; subject: string; html: string; text: string }) {
-  if (!resendApiKey) {
-    console.warn('Resend API key is not configured in env variables. Skipping email send.');
+type EmailDispatchPayload = Omit<TransactionalEmailPayload, 'to'> & {
+  to: string | string[];
+};
+
+function normalizeRecipients(to: EmailDispatchPayload['to']) {
+  return Array.isArray(to) ? to : [to];
+}
+
+function getCustomBookingConfirmationPayload(booking: Booking): EmailDispatchPayload | null {
+  const customEmail = booking.confirmationEmail;
+  if (!customEmail) {
+    return null;
+  }
+
+  if (
+    typeof customEmail.subject !== 'string' ||
+    customEmail.subject.trim().length === 0 ||
+    typeof customEmail.html !== 'string' ||
+    customEmail.html.trim().length === 0 ||
+    typeof customEmail.text !== 'string' ||
+    customEmail.text.trim().length === 0
+  ) {
+    return null;
+  }
+
+  return {
+    to: customEmail.to && customEmail.to.length > 0 ? customEmail.to : booking.email,
+    subject: customEmail.subject,
+    html: customEmail.html,
+    text: customEmail.text,
+  };
+}
+
+async function sendEmail(payload: EmailDispatchPayload) {
+  const resendDelivered = await sendWithResend(payload);
+  if (resendDelivered) {
     return;
   }
 
+  const smtpDelivered = await sendWithSmtp(payload);
+  if (smtpDelivered) {
+    return;
+  }
+
+  console.error('Email delivery failed: neither Resend nor SMTP transport succeeded.');
+}
+
+async function sendWithResend(payload: EmailDispatchPayload) {
+  if (!resendApiKey) {
+    console.warn('Resend API key is not configured. Trying SMTP fallback instead.');
+    return false;
+  }
+
   try {
+    const recipients = normalizeRecipients(payload.to);
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${resendApiKey}`,
+        Authorization: `Bearer re_ZZtNoJjE_4X5ffDuyVUu5YXEcXs2MguqG`,
         'Content-Type': 'application/json',
+        'User-Agent': 'my-app/1.0',
       },
       body: JSON.stringify({
-        from: resendFromEmail,
-        to: [payload.to],
+        from: 'support@artsybyoma.com',
+        to: recipients,
         subject: payload.subject,
         html: payload.html,
         text: payload.text,
@@ -37,15 +100,58 @@ async function sendEmail(payload: { to: string; subject: string; html: string; t
     const data = await res.json();
     if (!res.ok) {
       console.error('Resend API error:', data);
-    } else {
-      console.log(`Email successfully sent to ${payload.to}. ID: ${data.id}`);
+      return false;
     }
+
+    console.log(`Email successfully sent via Resend to ${recipients.join(', ')}. ID: ${data.id}`);
+    return true;
   } catch (err) {
     console.error('Failed to dispatch email via Resend:', err);
+    return false;
+  }
+}
+
+async function sendWithSmtp(payload: EmailDispatchPayload) {
+  if (!smtpHost || !smtpUser || !smtpPass) {
+    console.warn('SMTP credentials are not configured. Cannot use Nodemailer fallback.');
+    return false;
+  }
+
+  try {
+    const recipients = normalizeRecipients(payload.to);
+    const transporter = nodemailer.createTransport({
+      host: smtpHost,
+      port: smtpPort,
+      secure: smtpSecure,
+      auth: {
+        user: smtpUser,
+        pass: smtpPass,
+      },
+    });
+
+    const info = await transporter.sendMail({
+      from: smtpFromEmail,
+      to: recipients,
+      subject: payload.subject,
+      html: payload.html,
+      text: payload.text,
+    });
+
+    console.log(`Email successfully sent via Nodemailer to ${recipients.join(', ')}. ID: ${info.messageId}`);
+    return true;
+  } catch (err) {
+    console.error('Failed to dispatch email via Nodemailer:', err);
+    return false;
   }
 }
 
 export async function sendBookingConfirmationEmail(booking: Booking) {
+  const customConfirmationEmail = getCustomBookingConfirmationPayload(booking);
+  if (customConfirmationEmail) {
+    await sendEmail(customConfirmationEmail);
+    return;
+  }
+
   const receiptUrl = getBookingReceiptUrl(booking.id);
   const html = `
     <!DOCTYPE html>
