@@ -84,7 +84,7 @@ async function sendWithResend(payload: EmailDispatchPayload) {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer re_ZZtNoJjE_4X5ffDuyVUu5YXEcXs2MguqG`,
+        Authorization: `Bearer ${resendApiKey}`,
         'Content-Type': 'application/json',
         'User-Agent': 'my-app/1.0',
       },
