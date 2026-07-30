@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getAdminContext } from '@/lib/firebase/admin';
+import { sendBookingRequestReceivedEmail } from '@/lib/email/resend';
 import { calculateActivityPrice } from '@/lib/utils/pricing';
-import { Activity, Artwork } from '@/lib/types';
+import { Activity, Artwork, Booking } from '@/lib/types';
 
 function errorResponse(error: string, status: number) {
   return NextResponse.json({ success: false, error }, { status });
@@ -92,7 +93,7 @@ export async function POST(request: Request) {
       // 6. Write pending booking to Firestore
       const bookingRef = adminDb.collection('bookings').doc();
       const bookingNumber = `PSB-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
-      const pendingBooking = {
+      const pendingBooking: Booking = {
         id: bookingRef.id,
         bookingNumber,
         customerName: `${firstName} ${lastName}`,
@@ -124,6 +125,7 @@ export async function POST(request: Request) {
       await bookingRef.set(pendingBooking);
 
       if (isEnquiryOnly) {
+        await sendBookingRequestReceivedEmail(pendingBooking);
         return NextResponse.json({
           success: true,
           bookingId: bookingRef.id,

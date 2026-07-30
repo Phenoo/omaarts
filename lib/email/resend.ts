@@ -2,8 +2,17 @@ import { Booking, Order } from '../types';
 
 const resendApiKey = process.env.RESEND_API_KEY;
 const resendFromEmail = process.env.RESEND_FROM_EMAIL || 'Paint & Sip with Oma <onboarding@resend.dev>';
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://artsybyoma.com';
 
-async function sendEmail(payload: { to: string; subject: string; html: string }) {
+function getBookingReceiptUrl(bookingId: string) {
+  return `${siteUrl}/checkout/confirmation?type=booking&id=${bookingId}`;
+}
+
+function getOrderReceiptUrl(orderId: string) {
+  return `${siteUrl}/checkout/confirmation?type=order&id=${orderId}`;
+}
+
+async function sendEmail(payload: { to: string; subject: string; html: string; text: string }) {
   if (!resendApiKey) {
     console.warn('Resend API key is not configured in env variables. Skipping email send.');
     return;
@@ -21,6 +30,7 @@ async function sendEmail(payload: { to: string; subject: string; html: string })
         to: [payload.to],
         subject: payload.subject,
         html: payload.html,
+        text: payload.text,
       }),
     });
 
@@ -36,6 +46,7 @@ async function sendEmail(payload: { to: string; subject: string; html: string })
 }
 
 export async function sendBookingConfirmationEmail(booking: Booking) {
+  const receiptUrl = getBookingReceiptUrl(booking.id);
   const html = `
     <!DOCTYPE html>
     <html>
@@ -43,7 +54,7 @@ export async function sendBookingConfirmationEmail(booking: Booking) {
         <meta charset="utf-8">
         <style>
           body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #fcf9ff; color: #2d1658; margin: 0; padding: 20px; }
-          .container { max-width: 600px; background-color: #ffffff; border: 1px border #eae1f5; border-radius: 16px; margin: 0 auto; padding: 30px; box-shadow: 0 4px 12px rgba(111, 59, 210, 0.05); }
+          .container { max-width: 600px; background-color: #ffffff; border: 1px solid #eae1f5; border-radius: 16px; margin: 0 auto; padding: 30px; box-shadow: 0 4px 12px rgba(111, 59, 210, 0.05); }
           .logo { text-align: center; margin-bottom: 25px; }
           .header { text-align: center; border-bottom: 1px solid #f0e6fc; padding-bottom: 20px; }
           .header h1 { color: #6f3bd2; font-family: Georgia, serif; font-size: 28px; margin: 0; }
@@ -52,7 +63,7 @@ export async function sendBookingConfirmationEmail(booking: Booking) {
           .details-row strong { color: #f47b20; }
           .extra-box { background-color: #fcf9ff; border: 1px solid #eae1f5; border-radius: 12px; padding: 15px; margin: 20px 0; font-size: 13px; }
           .extra-box strong { color: #6f3bd2; display: block; margin-bottom: 5px; }
-          .footer { text-align: center; font-size: 12px; color: #8c7fa6; margin-top: 30px; border-t: 1px solid #f0e6fc; padding-top: 20px; }
+          .footer { text-align: center; font-size: 12px; color: #8c7fa6; margin-top: 30px; border-top: 1px solid #f0e6fc; padding-top: 20px; }
           .btn { display: inline-block; padding: 12px 25px; background-color: #6f3bd2; color: #ffffff !important; text-decoration: none; border-radius: 25px; font-weight: bold; margin-top: 15px; font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; }
         </style>
       </head>
@@ -112,7 +123,7 @@ export async function sendBookingConfirmationEmail(booking: Booking) {
           </div>
 
           <div style="text-align: center;">
-            <a href="https://artsybyoma.com/checkout/confirmation?type=booking&id=${booking.id}" class="btn">View Printable Receipt</a>
+            <a href="${receiptUrl}" class="btn">View Printable Receipt</a>
           </div>
 
           <div class="footer">
@@ -124,14 +135,27 @@ export async function sendBookingConfirmationEmail(booking: Booking) {
     </html>
   `;
 
+  const text = [
+    `Booking Confirmed: ${booking.activitySnapshot.name}`,
+    `Booking Number: ${booking.bookingNumber}`,
+    `Customer: ${booking.customerName}`,
+    `Date: ${booking.date}`,
+    `Time: ${booking.startTime}`,
+    `Guests: ${booking.numberOfGuests}`,
+    `Amount Paid: NGN ${booking.total.toLocaleString()}`,
+    `Receipt: ${receiptUrl}`,
+  ].join('\n');
+
   await sendEmail({
     to: booking.email,
     subject: `Booking Confirmed: ${booking.activitySnapshot.name} (#${booking.bookingNumber})`,
     html,
+    text,
   });
 }
 
 export async function sendOrderConfirmationEmail(order: Order) {
+  const receiptUrl = getOrderReceiptUrl(order.id);
   const itemsHtml = order.items.map((item) => `
     <tr style="border-bottom: 1px dashed #f0e6fc; font-size: 13px;">
       <td style="padding: 10px 0; font-family: Georgia, serif; font-weight: bold;">${item.title}</td>
@@ -151,7 +175,7 @@ export async function sendOrderConfirmationEmail(order: Order) {
           .header { text-align: center; border-bottom: 1px solid #f0e6fc; padding-bottom: 20px; }
           .header h1 { color: #6f3bd2; font-family: Georgia, serif; font-size: 28px; margin: 0; }
           .details { margin: 25px 0; font-size: 14px; line-height: 1.6; }
-          .items-table { w-full border-collapse: collapse; margin: 20px 0; }
+          .items-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
           .details-row { display: flex; justify-content: space-between; border-bottom: 1px dashed #f0e6fc; padding: 8px 0; }
           .extra-box { background-color: #fcf9ff; border: 1px solid #eae1f5; border-radius: 12px; padding: 15px; margin: 20px 0; font-size: 13px; }
           .extra-box strong { color: #6f3bd2; display: block; margin-bottom: 5px; }
@@ -218,7 +242,7 @@ export async function sendOrderConfirmationEmail(order: Order) {
           `}
 
           <div style="text-align: center;">
-            <a href="https://artsybyoma.com/checkout/confirmation?type=order&id=${order.id}" class="btn">View Printable Invoice</a>
+            <a href="${receiptUrl}" class="btn">View Printable Invoice</a>
           </div>
 
           <div class="footer">
@@ -230,9 +254,85 @@ export async function sendOrderConfirmationEmail(order: Order) {
     </html>
   `;
 
+  const text = [
+    `Order Confirmed`,
+    `Order Number: ${order.orderNumber}`,
+    `Customer: ${order.customerName}`,
+    `Items: ${order.items.map((item) => item.title).join(', ')}`,
+    `Grand Total Paid: NGN ${order.total.toLocaleString()}`,
+    `Receipt: ${receiptUrl}`,
+  ].join('\n');
+
   await sendEmail({
     to: order.email,
     subject: `Order Confirmed: Thank you for your art purchase! (#${order.orderNumber})`,
     html,
+    text,
+  });
+}
+
+export async function sendBookingRequestReceivedEmail(booking: Booking) {
+  const receiptUrl = getBookingReceiptUrl(booking.id);
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #fcf9ff; color: #2d1658; margin: 0; padding: 20px; }
+          .container { max-width: 600px; background-color: #ffffff; border: 1px solid #eae1f5; border-radius: 16px; margin: 0 auto; padding: 30px; box-shadow: 0 4px 12px rgba(111, 59, 210, 0.05); }
+          .header { text-align: center; border-bottom: 1px solid #f0e6fc; padding-bottom: 20px; }
+          .header h1 { color: #6f3bd2; font-family: Georgia, serif; font-size: 28px; margin: 0; }
+          .details-row { display: flex; justify-content: space-between; border-bottom: 1px dashed #f0e6fc; padding: 8px 0; font-size: 14px; }
+          .btn { display: inline-block; padding: 12px 25px; background-color: #6f3bd2; color: #ffffff !important; text-decoration: none; border-radius: 25px; font-weight: bold; margin-top: 18px; font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Booking Request Received</h1>
+            <p style="font-size: 14px; margin: 8px 0 0; color: #8c7fa6;">Booking Number: ${booking.bookingNumber}</p>
+          </div>
+          <p>Hi <strong>${booking.customerName}</strong>,</p>
+          <p>We have received your booking request and saved your details. Our team will follow up with pricing or confirmation details shortly.</p>
+          <div class="details-row">
+            <span>Experience</span>
+            <span>${booking.activitySnapshot.name}</span>
+          </div>
+          <div class="details-row">
+            <span>Date</span>
+            <span>${booking.date}</span>
+          </div>
+          <div class="details-row">
+            <span>Time</span>
+            <span>${booking.startTime}</span>
+          </div>
+          <div class="details-row">
+            <span>Guests</span>
+            <span>${booking.numberOfGuests}</span>
+          </div>
+          <div style="text-align: center;">
+            <a href="${receiptUrl}" class="btn">View Booking Details</a>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+
+  const text = [
+    `Booking Request Received`,
+    `Booking Number: ${booking.bookingNumber}`,
+    `Experience: ${booking.activitySnapshot.name}`,
+    `Date: ${booking.date}`,
+    `Time: ${booking.startTime}`,
+    `Guests: ${booking.numberOfGuests}`,
+    `Details: ${receiptUrl}`,
+  ].join('\n');
+
+  await sendEmail({
+    to: booking.email,
+    subject: `Booking Request Received (#${booking.bookingNumber})`,
+    html,
+    text,
   });
 }
