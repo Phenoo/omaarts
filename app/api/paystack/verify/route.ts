@@ -107,3 +107,4 @@ export async function GET(request: Request) {
   }
 }
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';

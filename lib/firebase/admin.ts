@@ -1,12 +1,8 @@
 import { cert, getApp, getApps, initializeApp } from 'firebase-admin/app';
-import { getAuth, type Auth } from 'firebase-admin/auth';
 import { getFirestore, type Firestore } from 'firebase-admin/firestore';
-import { getStorage, type Storage } from 'firebase-admin/storage';
 
 export interface AdminContext {
-  adminAuth: Auth | null;
   adminDb: Firestore | null;
-  adminStorage: Storage | null;
   error?: string;
   isConfigured: boolean;
 }
@@ -39,9 +35,7 @@ function buildAdminContext(): AdminContext {
 
   if (!projectId || !clientEmail || !privateKey) {
     return {
-      adminAuth: null,
       adminDb: null,
-      adminStorage: null,
       error: 'Firebase Admin credentials are incomplete.',
       isConfigured: false,
     };
@@ -60,9 +54,7 @@ function buildAdminContext(): AdminContext {
       : getApp();
 
     return {
-      adminAuth: getAuth(app),
       adminDb: getFirestore(app),
-      adminStorage: getStorage(app),
       isConfigured: true,
     };
   } catch (error: unknown) {
@@ -70,9 +62,7 @@ function buildAdminContext(): AdminContext {
     console.error('Firebase Admin SDK initialization failed:', error);
 
     return {
-      adminAuth: null,
       adminDb: null,
-      adminStorage: null,
       error: message,
       isConfigured: false,
     };
