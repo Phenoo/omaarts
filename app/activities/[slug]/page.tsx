@@ -95,7 +95,7 @@ export default function ActivityDetailPage({ params }: PageProps) {
             className="object-cover"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+          <div className="absolute inset-0 bg-black/30" />
           <div className="absolute bottom-6 left-6 md:bottom-10 md:left-10 text-white flex flex-col gap-2">
             <span className="font-mono text-xs uppercase tracking-widest text-[var(--accent-orange)] font-semibold bg-black/45 px-3 py-1 rounded-full w-fit">
               {activity.category}

@@ -9,8 +9,6 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@sanity/image-url": "^2.0.2",
-    "@sanity/vision": "^3.0.0",
     "clsx": "^2.1.1",
     "firebase": "^12.16.0",
     "firebase-admin": "^14.2.0",

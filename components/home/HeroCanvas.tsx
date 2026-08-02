@@ -26,10 +26,7 @@ export default function HeroCanvas() {
       },
     });
 
-    // Parallax scaling effect
     tl.fromTo(imageRef.current, { scale: 1 }, { scale: 1.08, ease: "none" });
-
-    // Text fade out on scroll
     tl.to(
       textRef.current,
       { opacity: 0, y: -80, ease: "power2.in" },
@@ -56,11 +53,10 @@ export default function HeroCanvas() {
             className="object-cover object-[center_18%]"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/10 to-black/35" />
+          <div className="absolute inset-0 bg-black/25" />
         </div>
       </div>
 
-      {/* Main Copy & Clickable CTA buttons */}
       <div
         ref={textRef}
         className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none px-4 text-center"
@@ -81,7 +77,7 @@ export default function HeroCanvas() {
           </Link>
           <Link
             href="/portfolio"
-            className="px-8 py-3.5 rounded-full bg-white/15 backdrop-blur-sm border border-white/35 text-white hover:bg-white hover:text-[var(--foreground)] transition-all font-mono text-xs uppercase tracking-widest shadow-lg cursor-pointer"
+            className="px-8 py-3.5 rounded-full backdrop-blur-sm border border-white/35 text-black bg-white text-[var(--foreground)] transition-all font-mono text-xs uppercase tracking-widest shadow-lg cursor-pointer"
           >
             Explore Art
           </Link>

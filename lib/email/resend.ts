@@ -89,7 +89,7 @@ async function sendWithResend(payload: EmailDispatchPayload) {
         'User-Agent': 'my-app/1.0',
       },
       body: JSON.stringify({
-        from: 'support@artsybyoma.com',
+        from: resendFromEmail,
         to: recipients,
         subject: payload.subject,
         html: payload.html,

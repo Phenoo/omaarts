@@ -34,9 +34,6 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  background-image:
-    radial-gradient(circle at 8% 12%, rgba(111, 59, 210, 0.15) 0%, rgba(111, 59, 210, 0) 42%),
-    radial-gradient(circle at 86% 84%, rgba(244, 123, 32, 0.12) 0%, rgba(244, 123, 32, 0) 38%);
   font-family: var(--font-dm-sans), sans-serif;
   overflow-x: hidden;
   /* Prevent horizontal scroll from animations */

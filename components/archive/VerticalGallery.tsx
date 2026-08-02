@@ -19,7 +19,7 @@ export default function VerticalGallery() {
     if (!containerRef.current) return;
 
     const ctx = gsap.context(() => {
-      itemsRef.current.forEach((item, i) => {
+      itemsRef.current.forEach((item) => {
         if (!item) return;
         
         const imageWrapper = item.querySelector('.image-wrapper');
@@ -106,7 +106,7 @@ export default function VerticalGallery() {
                         fill
                         className="object-cover transition-transform duration-700 hover:scale-105"
                      />
-                     <div className="absolute inset-0 bg-gradient-to-t from-[var(--surface-strong)]/35 via-transparent to-transparent" />
+                     <div className="absolute inset-0 bg-[var(--surface-strong)]/12" />
                      <div className="absolute top-4 left-4 rounded-full bg-white/85 backdrop-blur-sm px-3 py-1 font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--accent-secondary)]">
                         0{i + 1}
                      </div>
