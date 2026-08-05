@@ -61,7 +61,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
         <div className="relative h-8 w-32 overflow-hidden">
           <Image
             src="/images/oma-logo.jpg"
-            alt="Arts by Oma"
+            alt="Artsy by Oma"
             fill
             className="object-contain scale-[1.3] origin-left"
           />
@@ -86,7 +86,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
             <Link href="/" className="relative h-10 w-40 overflow-hidden block">
               <Image
                 src="/images/oma-logo.jpg"
-                alt="Arts by Oma"
+                alt="Artsy by Oma"
                 fill
                 className="object-contain scale-[1.35] origin-left"
               />

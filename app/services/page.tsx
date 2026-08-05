@@ -55,7 +55,7 @@ export default function ServicesPage() {
                 <div className="w-12 h-12 bg-[var(--accent-purple)] rounded-full mb-6 group-hover:bg-[var(--accent-orange)] transition-colors" />
                 <h3 className="font-serif text-3xl mb-4">Brand Collaboration</h3>
                 <p className="font-sans opacity-70 mb-6 leading-relaxed">
-                    Partner with Arts by Oma for limited edition product drops, licensing, or creative direction. Infuse your brand with authentic cultural vibrancy.
+                    Partner with Artsy by Oma for limited edition product drops, licensing, or creative direction. Infuse your brand with authentic cultural vibrancy.
                 </p>
                 <ul className="font-mono text-xs uppercase tracking-widest opacity-60 space-y-2">
                     <li>• Asset Licensing</li>

@@ -286,7 +286,7 @@ export default function Home() {
                 <div className="relative col-span-2 aspect-[16/9] overflow-hidden rounded-[1.75rem] border border-white/12 bg-white/10">
                   <Image
                     src={EVENT_GALLERY[0]}
-                    alt="Arts by Oma private event setup"
+                    alt="Artsy by Oma private event setup"
                     fill
                     className="object-cover"
                   />

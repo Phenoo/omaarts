@@ -106,7 +106,7 @@ export default function Footer() {
 
         <div className="flex flex-col gap-4 border-t border-white/15 pt-8 md:flex-row md:items-end md:justify-between">
           <span className="font-mono text-[10px] text-white/55">
-            © {new Date().getFullYear()} ARTS BY OMA. ALL RIGHTS RESERVED.
+            © {new Date().getFullYear()} ARTSY BY OMA. ALL RIGHTS RESERVED.
           </span>
         </div>
       </div>

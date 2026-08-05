@@ -140,7 +140,7 @@ function AdminLoginContent() {
           <div className="relative h-14 w-44 overflow-hidden block">
             <Image
               src="/images/oma-logo.jpg"
-              alt="Arts by Oma"
+              alt="Artsy by Oma"
               fill
               className="object-contain scale-[1.3] origin-center"
             />

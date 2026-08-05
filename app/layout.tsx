@@ -28,19 +28,19 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Arts by Oma | Nigerian Contemporary Art',
-  description: 'Portfolio of Arts by Oma - Exploring memory, identity, and vibrant chaos through mixed media.',
+  title: 'Artsy by Oma | Nigerian Contemporary Art',
+  description: 'Portfolio of Artsy by Oma - Exploring memory, identity, and vibrant chaos through mixed media.',
   openGraph: {
-    title: 'Arts by Oma | Nigerian Contemporary Art',
-    description: 'Portfolio of Arts by Oma - Exploring memory, identity, and vibrant chaos through mixed media.',
+    title: 'Artsy by Oma | Nigerian Contemporary Art',
+    description: 'Portfolio of Artsy by Oma - Exploring memory, identity, and vibrant chaos through mixed media.',
     url: 'https://artsybyoma.com',
-    siteName: 'Arts by Oma',
+    siteName: 'Artsy by Oma',
     images: [
       {
         url: '/images/oma-logo.jpg',
         width: 1200,
         height: 630,
-        alt: 'Arts by Oma - Nigerian Contemporary Art',
+        alt: 'Artsy by Oma - Nigerian Contemporary Art',
       },
     ],
     locale: 'en_US',
@@ -48,8 +48,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Arts by Oma | Nigerian Contemporary Art',
-    description: 'Portfolio of Arts by Oma - Exploring memory, identity, and vibrant chaos through mixed media.',
+    title: 'Artsy by Oma | Nigerian Contemporary Art',
+    description: 'Portfolio of Artsy by Oma - Exploring memory, identity, and vibrant chaos through mixed media.',
     images: ['/images/oma-logo.jpg'],
   },
 };

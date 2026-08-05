@@ -3,7 +3,7 @@ import { Booking, Order, TransactionalEmailPayload } from '../types';
 
 const resendApiKey = process.env.RESEND_API_KEY;
 const requiredSupportAddress = 'support@artsybyoma.com';
-const defaultSupportSender = `Arts by Oma <${requiredSupportAddress}>`;
+const defaultSupportSender = `Artsy by Oma <${requiredSupportAddress}>`;
 const smtpHost = process.env.SMTP_HOST;
 const smtpPort = Number(process.env.SMTP_PORT || 587);
 const smtpUser = process.env.SMTP_USER;
@@ -234,7 +234,7 @@ export async function sendBookingConfirmationEmail(booking: Booking) {
 
           <div class="footer">
             <p>If you need to reschedule or have questions, please call us at +2348167009545 or reply to this email.</p>
-            <p>&copy; ${new Date().getFullYear()} Arts by Oma. All rights reserved.</p>
+            <p>&copy; ${new Date().getFullYear()} Artsy by Oma. All rights reserved.</p>
           </div>
         </div>
       </body>
@@ -292,7 +292,7 @@ export async function sendOrderConfirmationEmail(order: Order) {
       <body>
         <div class="container">
           <div class="logo">
-            <h2 style="font-family: Georgia, serif; color: #6f3bd2; margin: 0;">ARTS BY OMA</h2>
+            <h2 style="font-family: Georgia, serif; color: #6f3bd2; margin: 0;">ARTSY BY OMA</h2>
             <span style="font-size: 10px; font-family: monospace; letter-spacing: 0.1em; color: #f47b20; text-transform: uppercase;">Gallery &amp; E-commerce</span>
           </div>
           
@@ -353,7 +353,7 @@ export async function sendOrderConfirmationEmail(order: Order) {
 
           <div class="footer">
             <p>If you have any questions about shipment or custom framing options, please reply to this email.</p>
-            <p>&copy; ${new Date().getFullYear()} Arts by Oma. All rights reserved.</p>
+            <p>&copy; ${new Date().getFullYear()} Artsy by Oma. All rights reserved.</p>
           </div>
         </div>
       </body>
