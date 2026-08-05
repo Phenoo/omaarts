@@ -35,6 +35,21 @@ export async function getActivities(onlyActive = true): Promise<Activity[]> {
   }
 }
 
+export async function getActivity(id: string): Promise<Activity | null> {
+  try {
+    const docRef = doc(db, 'activities', id);
+    const snap = await getDoc(docRef);
+    if (!snap.exists()) return null;
+    return {
+      id: snap.id,
+      ...snap.data()
+    } as Activity;
+  } catch (error) {
+    console.error('Error fetching activity:', error);
+    throw error;
+  }
+}
+
 export async function getActivityBySlug(slug: string): Promise<Activity | null> {
   try {
     const colRef = collection(db, 'activities');

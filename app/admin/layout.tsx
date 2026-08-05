@@ -147,7 +147,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main Content scrollable panel */}
-      <main className="flex-grow p-6 md:p-10 max-w-full overflow-x-hidden md:h-screen md:overflow-y-auto">
+      <main className="flex-grow p-6 md:p-10 max-w-full overflow-x-hidden">
         <div className="max-w-6xl mx-auto">
           {children}
         </div>

@@ -28,6 +28,7 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://artsybyoma.com'),
   title: 'Artsy by Oma | Nigerian Contemporary Art',
   description: 'Portfolio of Artsy by Oma - Exploring memory, identity, and vibrant chaos through mixed media.',
   openGraph: {

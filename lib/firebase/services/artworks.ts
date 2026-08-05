@@ -252,3 +252,18 @@ export async function getArtworkCategories(): Promise<Category[]> {
     ];
   }
 }
+
+export async function getArtwork(id: string): Promise<Artwork | null> {
+  try {
+    const docRef = doc(db, 'artworks', id);
+    const snap = await getDoc(docRef);
+    if (!snap.exists()) return null;
+    return {
+      id: snap.id,
+      ...snap.data()
+    } as Artwork;
+  } catch (error) {
+    console.error('Error fetching artwork:', error);
+    throw error;
+  }
+}

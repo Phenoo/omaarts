@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import gsap from "gsap";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from 'next/navigation';
 import { useCart } from "@/lib/context/CartContext";
 import { ShoppingCart } from "lucide-react";
 
@@ -55,6 +56,7 @@ export default function NavigationOverlay() {
   const linksRef = useRef<(HTMLAnchorElement | null)[]>([]);
   const socialsRef = useRef<(HTMLAnchorElement | null)[]>([]);
   const { cartCount } = useCart();
+  const pathname = usePathname();
 
   useEffect(() => {
     // Initial State
@@ -139,6 +141,10 @@ export default function NavigationOverlay() {
   }, [isOpen]);
 
   const toggleMenu = () => setIsOpen(!isOpen);
+
+  if (pathname?.startsWith('/admin')) {
+    return null;
+  }
 
   return (
     <>

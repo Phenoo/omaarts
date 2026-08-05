@@ -20,10 +20,10 @@ import { Booking, Order, Sale, AuditLog } from '../../types';
 export async function getBookings(filterStatus?: string): Promise<Booking[]> {
   try {
     const colRef = collection(db, 'bookings');
-    let q = query(colRef, orderBy('date', 'desc'), orderBy('startTime', 'desc'));
+    let q = query(colRef, orderBy('date', 'desc'));
     
     if (filterStatus && filterStatus !== 'all') {
-      q = query(colRef, where('bookingStatus', '==', filterStatus), orderBy('date', 'desc'), orderBy('startTime', 'desc'));
+      q = query(colRef, where('bookingStatus', '==', filterStatus), orderBy('date', 'desc'));
     }
 
     const snapshot = await getDocs(q);
@@ -33,6 +33,21 @@ export async function getBookings(filterStatus?: string): Promise<Booking[]> {
     })) as Booking[];
   } catch (error) {
     console.error('Error fetching bookings:', error);
+    throw error;
+  }
+}
+
+export async function getBooking(id: string): Promise<Booking> {
+  try {
+    const docRef = doc(db, 'bookings', id);
+    const snap = await getDoc(docRef);
+    if (!snap.exists()) throw new Error(`Booking ${id} not found`);
+    return {
+      id: snap.id,
+      ...snap.data()
+    } as Booking;
+  } catch (error) {
+    console.error('Error fetching booking:', error);
     throw error;
   }
 }
@@ -146,7 +161,7 @@ export async function updateOrderStatus(
 export async function getSales(): Promise<Sale[]> {
   try {
     const colRef = collection(db, 'sales');
-    const q = query(colRef, orderBy('date', 'desc'), orderBy('createdAt', 'desc'));
+    const q = query(colRef, orderBy('createdAt', 'desc'));
     const snapshot = await getDocs(q);
     return snapshot.docs.map((doc) => ({
       id: doc.id,
