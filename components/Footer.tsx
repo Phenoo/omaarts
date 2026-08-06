@@ -17,6 +17,7 @@ const EXPLORE_LINKS = [
   { label: 'Portfolio', href: '/portfolio' },
   { label: 'Shop', href: '/shop' },
   { label: 'About', href: '/about' },
+  { label: 'My Account', href: '/account' },
 ];
 
 const BOOKING_LINKS = [

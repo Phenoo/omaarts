@@ -1,7 +1,11 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { Artwork } from '../types';
+import { db } from '../firebase/config';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { onAuthStateChanged, User } from 'firebase/auth';
+import { auth } from '../firebase/config';
 
 interface CartItem {
   artworkId: string;
@@ -23,39 +27,112 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+const LOCAL_STORAGE_KEY = 'oma_cart';
+
+function getLocalCart(): CartItem[] {
+  try {
+    const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveLocalCart(cart: CartItem[]) {
+  try {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(cart));
+  } catch (e) {
+    console.error('Failed to save cart to localStorage:', e);
+  }
+}
+
+/** Merge two carts: union by artworkId, localStorage items take priority for duplicates */
+function mergeCarts(localCart: CartItem[], firestoreCart: CartItem[]): CartItem[] {
+  const map = new Map<string, CartItem>();
+  for (const item of firestoreCart) {
+    map.set(item.artworkId, item);
+  }
+  for (const item of localCart) {
+    map.set(item.artworkId, item); // local items overwrite firestore dupes
+  }
+  return Array.from(map.values());
+}
+
+async function loadFirestoreCart(uid: string): Promise<CartItem[]> {
+  try {
+    const ref = doc(db, 'users', uid, 'cart', 'items');
+    const snap = await getDoc(ref);
+    if (snap.exists()) {
+      return (snap.data().items as CartItem[]) || [];
+    }
+  } catch (e) {
+    console.error('Failed to load Firestore cart:', e);
+  }
+  return [];
+}
+
+async function saveFirestoreCart(uid: string, cart: CartItem[]) {
+  try {
+    const ref = doc(db, 'users', uid, 'cart', 'items');
+    await setDoc(ref, { items: cart, updatedAt: new Date().toISOString() });
+  } catch (e) {
+    console.error('Failed to save Firestore cart:', e);
+  }
+}
+
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
-  // Load cart from localStorage on mount
+  // Track auth state
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('oma_cart');
-      if (stored) {
-        setCart(JSON.parse(stored));
-      }
-    } catch (e) {
-      console.error('Failed to load cart from localStorage:', e);
-    }
-    setIsLoaded(true);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);
+    });
+    return () => unsubscribe();
   }, []);
 
-  // Save cart to localStorage when it changes
+  // Load cart on mount / auth change
+  useEffect(() => {
+    const loadCart = async () => {
+      const localCart = getLocalCart();
+
+      if (currentUser) {
+        // Merge localStorage cart with Firestore cart
+        const firestoreCart = await loadFirestoreCart(currentUser.uid);
+        const merged = mergeCarts(localCart, firestoreCart);
+        setCart(merged);
+
+        // Save merged back to Firestore and clear localStorage duplicates
+        await saveFirestoreCart(currentUser.uid, merged);
+        // Keep localStorage in sync too for fast loads
+        saveLocalCart(merged);
+      } else {
+        setCart(localCart);
+      }
+      setIsLoaded(true);
+    };
+
+    loadCart();
+  }, [currentUser]);
+
+  // Persist cart when it changes
   useEffect(() => {
     if (!isLoaded) return;
-    try {
-      localStorage.setItem('oma_cart', JSON.stringify(cart));
-    } catch (e) {
-      console.error('Failed to save cart to localStorage:', e);
-    }
-  }, [cart, isLoaded]);
 
-  const addToCart = (artwork: Artwork) => {
-    // Unique artwork check: limit quantity to 1
+    saveLocalCart(cart);
+
+    if (currentUser) {
+      saveFirestoreCart(currentUser.uid, cart);
+    }
+  }, [cart, isLoaded, currentUser]);
+
+  const addToCart = useCallback((artwork: Artwork) => {
     setCart((prev) => {
       const exists = prev.some((item) => item.artworkId === artwork.id);
       if (exists) return prev; // already in cart
-      
+
       const newItem: CartItem = {
         artworkId: artwork.id,
         title: artwork.title,
@@ -65,19 +142,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       };
       return [...prev, newItem];
     });
-  };
+  }, []);
 
-  const removeFromCart = (artworkId: string) => {
+  const removeFromCart = useCallback((artworkId: string) => {
     setCart((prev) => prev.filter((item) => item.artworkId !== artworkId));
-  };
+  }, []);
 
-  const clearCart = () => {
+  const clearCart = useCallback(() => {
     setCart([]);
-  };
+  }, []);
 
-  const isInCart = (artworkId: string) => {
-    return cart.some((item) => item.artworkId === artworkId);
-  };
+  const isInCart = useCallback(
+    (artworkId: string) => {
+      return cart.some((item) => item.artworkId === artworkId);
+    },
+    [cart]
+  );
 
   const cartCount = cart.length;
   const cartSubtotal = cart.reduce((sum, item) => sum + item.price, 0);

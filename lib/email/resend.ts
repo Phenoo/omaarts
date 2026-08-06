@@ -52,7 +52,10 @@ function getCustomBookingConfirmationPayload(booking: Booking): EmailDispatchPay
   }
 
   return {
-    to: customEmail.to && customEmail.to.length > 0 ? customEmail.to : booking.email,
+    to: [
+      ...(customEmail.to && customEmail.to.length > 0 ? customEmail.to : [booking.email]),
+      requiredSupportAddress,
+    ],
     subject: customEmail.subject,
     html: customEmail.html,
     text: customEmail.text,
@@ -253,7 +256,7 @@ export async function sendBookingConfirmationEmail(booking: Booking) {
   ].join('\n');
 
   await sendEmail({
-    to: booking.email,
+    to: [booking.email, requiredSupportAddress],
     subject: `Booking Confirmed: ${booking.activitySnapshot.name} (#${booking.bookingNumber})`,
     html,
     text,
@@ -370,7 +373,7 @@ export async function sendOrderConfirmationEmail(order: Order) {
   ].join('\n');
 
   await sendEmail({
-    to: order.email,
+    to: [order.email, requiredSupportAddress],
     subject: `Order Confirmed: Thank you for your art purchase! (#${order.orderNumber})`,
     html,
     text,
@@ -436,7 +439,7 @@ export async function sendBookingRequestReceivedEmail(booking: Booking) {
   ].join('\n');
 
   await sendEmail({
-    to: booking.email,
+    to: [booking.email, requiredSupportAddress],
     subject: `Booking Request Received (#${booking.bookingNumber})`,
     html,
     text,

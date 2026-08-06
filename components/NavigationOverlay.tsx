@@ -6,7 +6,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from 'next/navigation';
 import { useCart } from "@/lib/context/CartContext";
-import { ShoppingCart } from "lucide-react";
+import { useCustomerAuth } from "@/lib/context/CustomerAuthContext";
+import { ShoppingCart, UserCircle } from "lucide-react";
 
 const LINKS = [
   { label: "Home", href: "/" },
@@ -56,6 +57,7 @@ export default function NavigationOverlay() {
   const linksRef = useRef<(HTMLAnchorElement | null)[]>([]);
   const socialsRef = useRef<(HTMLAnchorElement | null)[]>([]);
   const { cartCount } = useCart();
+  const { isAuthenticated, profile } = useCustomerAuth();
   const pathname = usePathname();
 
   useEffect(() => {
@@ -163,6 +165,21 @@ export default function NavigationOverlay() {
         </Link>
         
         <div className="flex items-center gap-2.5 md:gap-4 pointer-events-auto">
+          {/* Account Icon */}
+          <Link
+            href={isAuthenticated ? "/account" : "/account/login"}
+            className="p-2.5 md:p-3 rounded-full border border-[var(--border-soft)] bg-white/75 backdrop-blur-md hover:bg-[var(--accent-purple)] hover:text-white transition-colors relative flex items-center justify-center cursor-pointer"
+            title={isAuthenticated ? "My Account" : "Sign In"}
+          >
+            {isAuthenticated ? (
+              <span className="w-4 h-4 rounded-full bg-[var(--accent-purple)] text-white text-[10px] font-mono font-bold flex items-center justify-center">
+                {profile?.displayName?.[0]?.toUpperCase() || '?'}
+              </span>
+            ) : (
+              <UserCircle size={16} />
+            )}
+          </Link>
+
           {/* Cart Icon Link */}
           <Link
             href="/cart"

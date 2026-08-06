@@ -10,6 +10,20 @@ export interface UserDoc {
   updatedAt?: string;
 }
 
+export interface CustomerProfile extends UserDoc {
+  phone?: string;
+  defaultAddress?: string;
+  wishlistCount?: number;
+}
+
+export interface WishlistItem {
+  artworkId: string;
+  title: string;
+  image: string;
+  price: number;
+  addedAt: string;
+}
+
 export interface ActivityVariant {
   id: string;
   name: string;

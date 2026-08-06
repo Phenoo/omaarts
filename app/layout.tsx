@@ -8,6 +8,7 @@ import SmoothScroller from '../components/SmoothScroller';
 import CustomCursor from '../components/CustomCursor';
 import NavigationOverlay from '../components/NavigationOverlay';
 import { CartProvider } from '@/lib/context/CartContext';
+import { CustomerAuthProvider } from '@/lib/context/CustomerAuthContext';
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -63,14 +64,17 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${dmSans.variable} ${spaceGrotesk.variable} ${ibmPlexMono.variable} antialiased`}>
-        <CartProvider>
-          <SmoothScroller>
-            <CustomCursor />
-            <NavigationOverlay />
-            {children}
-          </SmoothScroller>
-        </CartProvider>
+        <CustomerAuthProvider>
+          <CartProvider>
+            <SmoothScroller>
+              <CustomCursor />
+              <NavigationOverlay />
+              {children}
+            </SmoothScroller>
+          </CartProvider>
+        </CustomerAuthProvider>
       </body>
     </html>
   );
 }
+

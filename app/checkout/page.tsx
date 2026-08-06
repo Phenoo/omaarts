@@ -1,15 +1,17 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '@/lib/context/CartContext';
+import { useCustomerAuth } from '@/lib/context/CustomerAuthContext';
 import { validateOrderInput, ValidationError } from '@/lib/validation';
-import { ArrowLeft, CreditCard, ShoppingBag, Truck, MapPin } from 'lucide-react';
+import { ArrowLeft, CreditCard, ShoppingBag, Truck, MapPin, UserCircle } from 'lucide-react';
 import Footer from '@/components/Footer';
 
 export default function CheckoutPage() {
   const { cart, cartSubtotal } = useCart();
+  const { isAuthenticated, profile, user } = useCustomerAuth();
 
   // Contact details
   const [firstName, setFirstName] = useState('');
@@ -26,6 +28,20 @@ export default function CheckoutPage() {
   const [errors, setErrors] = useState<ValidationError[]>([]);
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState('');
+
+  // Pre-fill from profile when logged in
+  useEffect(() => {
+    if (isAuthenticated && profile) {
+      const nameParts = (profile.displayName || '').split(' ');
+      setFirstName(nameParts[0] || '');
+      setLastName(nameParts.slice(1).join(' ') || '');
+      setEmail(profile.email || '');
+      setPhone(profile.phone || '');
+      if (profile.defaultAddress) {
+        setDeliveryAddress(profile.defaultAddress);
+      }
+    }
+  }, [isAuthenticated, profile]);
 
   // Delivery Fee configuration (e.g. NGN 3,000 within Nigeria/Awka)
   const defaultDeliveryFee = 3000;
@@ -86,6 +102,7 @@ export default function CheckoutPage() {
           deliveryOption,
           deliveryAddress: deliveryOption === 'delivery' ? deliveryAddress : '',
           orderNotes,
+          userId: user?.uid || null,
           items: cart.map((item) => ({
             artworkId: item.artworkId,
             title: item.title,
@@ -153,6 +170,19 @@ export default function CheckoutPage() {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
+
+          {/* Guest Sign-in Prompt */}
+          {!isAuthenticated && (
+            <div className="lg:col-span-3 flex items-center gap-3 p-4 rounded-xl bg-[var(--surface-soft)] border border-[var(--border-soft)]">
+              <UserCircle size={20} className="text-[var(--accent-purple)] shrink-0" />
+              <p className="text-sm text-[var(--text-muted)]">
+                <Link href="/account/login" className="text-[var(--accent-purple)] font-medium hover:text-[var(--accent-orange)] transition-colors">
+                  Sign in
+                </Link>
+                {' '}for faster checkout, or continue as guest.
+              </p>
+            </div>
+          )}
           
           {/* Checkout Form */}
           <form onSubmit={handleSubmit} className="lg:col-span-2 flex flex-col gap-8">
