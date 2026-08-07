@@ -37,7 +37,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     return {
       damagePolicy: "Guests are responsible for damage caused during their stay. Studio equipment and facilities should be treated with care and left in appropriate condition after use.",
       contactPhone: "+2348167009545",
-      contactEmail: "achebeoma963@gmail.com",
+      contactEmail: "support@artsybyoma.com",
       openingHours: "Tue - Sun: 11:00 AM - 8:00 PM",
       studioAddress: "ABO Gallery, No. 40 Majuo Street, Umudioka, Awka, Nigeria.",
       featuredAlertText: "Book early! Weekend slots fill up extremely fast.",

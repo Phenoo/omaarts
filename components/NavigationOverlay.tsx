@@ -46,13 +46,14 @@ const SOCIALS = [
   },
   {
     label: "Email",
-    href: "mailto:achebeoma963@gmail.com",
+    href: "mailto:support@artsybyoma.com",
     path: "M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z",
   },
 ];
 
 export default function NavigationOverlay() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const linksRef = useRef<(HTMLAnchorElement | null)[]>([]);
   const socialsRef = useRef<(HTMLAnchorElement | null)[]>([]);
@@ -60,89 +61,116 @@ export default function NavigationOverlay() {
   const { isAuthenticated, profile } = useCustomerAuth();
   const pathname = usePathname();
 
+  const closeMenu = () => setIsOpen(false);
+  const toggleMenu = () => setIsOpen((prev) => !prev);
+
+  // Client hydration check
   useEffect(() => {
-    // Initial State
+    setIsMounted(true);
+  }, []);
+
+  // Dismiss overlay whenever the route changes
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
+
+  // Initial GSAP setup on mount
+  useEffect(() => {
     if (containerRef.current) {
       gsap.set(containerRef.current, { yPercent: -100 });
+      containerRef.current.style.pointerEvents = 'none';
+      containerRef.current.style.visibility = 'hidden';
     }
-    // Initialize links state
     linksRef.current.forEach((link) => {
       if (link) {
-        gsap.set(link, { y: 100, opacity: 0 });
+        gsap.set(link, { y: 60, opacity: 0 });
       }
     });
-    // Initialize socials state
     socialsRef.current.forEach((social) => {
       if (social) {
-        gsap.set(social, { y: 50, opacity: 0 });
+        gsap.set(social, { y: 40, opacity: 0 });
       }
     });
   }, []);
 
+  // GSAP animation triggered by isOpen state
   useEffect(() => {
     if (!containerRef.current) return;
 
     const validLinks = linksRef.current.filter(
-      (link) => link !== null
-    ) as HTMLAnchorElement[];
+      (link): link is HTMLAnchorElement => link !== null
+    );
 
     const validSocials = socialsRef.current.filter(
-      (social) => social !== null
-    ) as HTMLAnchorElement[];
+      (social): social is HTMLAnchorElement => social !== null
+    );
 
-    if (isOpen) {
-      gsap.to(containerRef.current, {
-        yPercent: 0,
-        duration: 0.8,
-        ease: "expo.inOut",
-        overwrite: "auto",
-      });
-      gsap.to(validLinks, {
-        y: 0,
-        opacity: 1,
-        duration: 0.6,
-        stagger: 0.08,
-        delay: 0.2,
-        ease: "power3.out",
-        overwrite: "auto",
-      });
-      gsap.to(validSocials, {
-        y: 0,
-        opacity: 1,
-        duration: 0.6,
-        stagger: 0.05,
-        delay: 0.5,
-        ease: "power3.out",
-        overwrite: "auto",
-      });
-    } else {
-      gsap.to(validSocials, {
-        y: 50,
-        opacity: 0,
-        duration: 0.3,
-        stagger: 0.05,
-        ease: "power3.in",
-        overwrite: "auto",
-      });
-      gsap.to(validLinks, {
-        y: 100,
-        opacity: 0,
-        duration: 0.4,
-        stagger: 0.05,
-        ease: "power3.in",
-        overwrite: "auto",
-      });
-      gsap.to(containerRef.current, {
-        yPercent: -100,
-        duration: 0.8,
-        ease: "expo.inOut",
-        delay: 0.2,
-        overwrite: "auto",
-      });
-    }
+    const ctx = gsap.context(() => {
+      if (isOpen) {
+        if (containerRef.current) {
+          containerRef.current.style.visibility = 'visible';
+          containerRef.current.style.pointerEvents = 'auto';
+        }
+
+        const tl = gsap.timeline();
+
+        tl.to(containerRef.current, {
+          yPercent: 0,
+          duration: 0.55,
+          ease: "power3.out",
+        });
+
+        if (validLinks.length > 0) {
+          tl.to(validLinks, {
+            y: 0,
+            opacity: 1,
+            duration: 0.45,
+            stagger: 0.05,
+            ease: "power3.out",
+          }, "-=0.25");
+        }
+
+        if (validSocials.length > 0) {
+          tl.to(validSocials, {
+            y: 0,
+            opacity: 1,
+            duration: 0.45,
+            stagger: 0.03,
+            ease: "power3.out",
+          }, "-=0.3");
+        }
+      } else {
+        const tl = gsap.timeline({
+          onComplete: () => {
+            if (containerRef.current) {
+              containerRef.current.style.pointerEvents = 'none';
+              containerRef.current.style.visibility = 'hidden';
+            }
+          },
+        });
+
+        // 1. List and content items disappear FIRST
+        if (validLinks.length > 0 || validSocials.length > 0) {
+          tl.to([...validLinks, ...validSocials], {
+            y: 30,
+            opacity: 0,
+            duration: 0.2,
+            stagger: 0.02,
+            ease: "power2.in",
+          });
+        }
+
+        // 2. Purple background overlay slides up AFTER list has disappeared
+        tl.to(containerRef.current, {
+          yPercent: -100,
+          duration: 0.5,
+          ease: "power3.inOut",
+        });
+      }
+    });
+
+    return () => ctx.revert();
   }, [isOpen]);
-
-  const toggleMenu = () => setIsOpen(!isOpen);
 
   if (pathname?.startsWith('/admin')) {
     return null;
@@ -150,9 +178,11 @@ export default function NavigationOverlay() {
 
   return (
     <>
+      {/* Fixed Top Bar */}
       <header className="fixed top-0 left-0 w-full px-4 md:px-8 pt-5 z-[60] flex justify-between items-center text-[var(--foreground)] pointer-events-none">
         <Link
           href="/"
+          onClick={closeMenu}
           className="pointer-events-auto relative block h-11 md:h-14 w-[170px] md:w-[250px] overflow-hidden"
         >
           <Image
@@ -170,8 +200,9 @@ export default function NavigationOverlay() {
             href={isAuthenticated ? "/account" : "/account/login"}
             className="p-2.5 md:p-3 rounded-full border border-[var(--border-soft)] bg-white/75 backdrop-blur-md hover:bg-[var(--accent-purple)] hover:text-white transition-colors relative flex items-center justify-center cursor-pointer"
             title={isAuthenticated ? "My Account" : "Sign In"}
+            onClick={closeMenu}
           >
-            {isAuthenticated ? (
+            {isMounted && isAuthenticated ? (
               <span className="w-4 h-4 rounded-full bg-[var(--accent-purple)] text-white text-[10px] font-mono font-bold flex items-center justify-center">
                 {profile?.displayName?.[0]?.toUpperCase() || '?'}
               </span>
@@ -185,9 +216,10 @@ export default function NavigationOverlay() {
             href="/cart"
             className="p-2.5 md:p-3 rounded-full border border-[var(--border-soft)] bg-white/75 backdrop-blur-md hover:bg-[var(--accent-purple)] hover:text-white transition-colors relative flex items-center justify-center cursor-pointer"
             title="View Shopping Cart"
+            onClick={closeMenu}
           >
             <ShoppingCart size={16} />
-            {cartCount > 0 && (
+            {isMounted && cartCount > 0 && (
               <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[var(--accent-orange)] text-white text-[10px] font-mono font-bold flex items-center justify-center border border-white">
                 {cartCount}
               </span>
@@ -197,12 +229,13 @@ export default function NavigationOverlay() {
           {/* Book Experience CTA */}
           <Link
             href="/activities"
+            onClick={closeMenu}
             className="hidden md:inline-flex px-5 py-2.5 rounded-full bg-[var(--accent-purple)] hover:bg-[var(--accent-orange)] text-white font-mono text-xs uppercase tracking-wider font-semibold transition-colors cursor-pointer shadow-sm"
           >
             Book an Experience
           </Link>
 
-          {/* Menu Trigger */}
+          {/* Menu Toggle Button */}
           <button
             onClick={toggleMenu}
             className="font-mono text-sm md:text-base uppercase tracking-[0.15em] cursor-pointer px-4 py-2 rounded-full border border-[var(--border-soft)] bg-white/75 backdrop-blur-md hover:bg-[var(--accent-purple)] hover:text-white transition-colors"
@@ -212,8 +245,13 @@ export default function NavigationOverlay() {
         </div>
       </header>
 
+      {/* Fullscreen Navigation Overlay Drawer */}
       <div
         ref={containerRef}
+        style={{
+          pointerEvents: isOpen ? 'auto' : 'none',
+          visibility: isOpen ? 'visible' : 'hidden',
+        }}
         className="fixed inset-0 z-[50] bg-[var(--surface-strong)] flex items-center justify-center p-4 overflow-y-auto"
       >
         <div className="flex flex-col items-center gap-10 my-auto py-20">
@@ -225,8 +263,8 @@ export default function NavigationOverlay() {
                 ref={(el) => {
                   linksRef.current[i] = el;
                 }}
-                className="font-serif text-4xl md:text-7xl text-white hover:text-[var(--accent-orange)] transition-all duration-300 tracking-tight"
-                onClick={() => setIsOpen(false)}
+                className="font-serif text-2xl sm:text-4xl md:text-7xl text-white hover:text-[var(--accent-orange)] transition-all duration-300 tracking-tight"
+                onClick={closeMenu}
               >
                 {link.label}
               </Link>
@@ -235,7 +273,7 @@ export default function NavigationOverlay() {
 
           <Link
             href="/events"
-            onClick={() => setIsOpen(false)}
+            onClick={closeMenu}
             className="w-full max-w-2xl rounded-[1.75rem] border border-white/12 bg-white/8 p-5 text-white transition-colors hover:border-[var(--accent-orange)] hover:bg-white/12"
           >
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--accent-orange)]">
@@ -243,7 +281,7 @@ export default function NavigationOverlay() {
             </p>
             <div className="mt-3 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
               <div>
-                <h2 className="font-serif text-2xl md:text-4xl tracking-tight">
+                <h2 className="font-serif  text-xl sm:text-2xl md:text-4xl tracking-tight">
                   Book the studio for groups and celebrations.
                 </h2>
                 <p className="mt-2 max-w-lg text-sm leading-relaxed text-white/70">

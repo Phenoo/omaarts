@@ -9,7 +9,7 @@ const SOCIALS = [
     { label: "Facebook", href: "https://www.facebook.com/share/1GrxnpA1CX/?mibextid=wwXIfr" },
     { label: "Threads", href: "https://www.threads.com/@artsyby_oma?igshid=NTc4MTIwNjQ2YQ==" },
     { label: "WhatsApp", href: "https://wa.me/2348167009545" },
-    { label: "Email", href: "mailto:achebeoma963@gmail.com" },
+    { label: "Email", href: "mailto:support@artsybyoma.com" },
 ];
 
 const EXPLORE_LINKS = [
@@ -47,7 +47,7 @@ export default function Footer() {
             <div className="mt-5 space-y-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white/55">
               <p>Awka, Nigeria</p>
               <p>0816 700 9545</p>
-              <p>achebeoma963@gmail.com</p>
+              <p>support@artsybyoma.com</p>
             </div>
           </div>
 
@@ -105,8 +105,8 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-4 border-t border-white/15 pt-8 md:flex-row md:items-end md:justify-between">
-          <span className="font-mono text-[10px] text-white/55">
+        <div className="flex flex-col gap-4 border-t border-white/15 pt-8">
+          <span className="font-mono text-sm text-center text-white">
             © {new Date().getFullYear()} ARTSY BY OMA. ALL RIGHTS RESERVED.
           </span>
         </div>

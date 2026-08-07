@@ -58,14 +58,14 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
       
       {/* Mobile Top Bar */}
       <header className="md:hidden bg-[var(--surface-strong)] text-white p-4 flex justify-between items-center shadow-md">
-        <div className="relative h-8 w-32 overflow-hidden">
+        <Link href="/" onClick={() => setMobileOpen(false)} className="relative h-8 w-32 overflow-hidden block">
           <Image
             src="/images/oma-logo.jpg"
             alt="Artsy by Oma"
             fill
             className="object-contain scale-[1.3] origin-left"
           />
-        </div>
+        </Link>
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
           className="p-1 rounded-lg hover:bg-white/10 transition-colors"
@@ -83,7 +83,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
         <div className="flex flex-col overflow-y-auto">
           {/* Logo header */}
           <div className="p-6 border-b border-white/10 flex justify-between items-center">
-            <Link href="/" className="relative h-10 w-40 overflow-hidden block">
+            <Link href="/" onClick={() => setMobileOpen(false)} className="relative h-10 w-40 overflow-hidden block">
               <Image
                 src="/images/oma-logo.jpg"
                 alt="Artsy by Oma"

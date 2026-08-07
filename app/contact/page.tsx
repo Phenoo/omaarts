@@ -103,8 +103,8 @@ export default function ContactPage() {
 
             <div>
               <span className="block opacity-50 mb-2 text-xs text-[var(--text-muted)]">Email</span>
-              <a href="mailto:achebeoma963@gmail.com" className="hover:text-[var(--accent-orange)] transition-colors lowercase">
-                achebeoma963@gmail.com
+              <a href="mailto:support@artsybyoma.com" className="hover:text-[var(--accent-orange)] transition-colors lowercase">
+                support@artsybyoma.com
               </a>
             </div>
           </div>
