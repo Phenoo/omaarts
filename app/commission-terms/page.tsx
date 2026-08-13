@@ -1,0 +1,3 @@
+import PolicyPage from '@/components/PolicyPage'; import { createPageMetadata } from '@/lib/seo';
+export const metadata = createPageMetadata({ title: 'Commission terms', description: 'Review the commercial decisions and terms to confirm before commissioning an artwork from Oma Achebe.', pathname: '/commission-terms' });
+export default function CommissionTermsPage() { return <PolicyPage label="Policy" title="Commission terms" intro="The decisions to confirm before accepting a commissioned artwork brief." sections={[{ heading: 'Confirm the commercial terms', body: '[OWNER / LEGAL REVIEW REQUIRED] Add deposit percentage, revision rounds, timeline, approvals, cancellation, delivery, installation, copyright, and usage terms.' }]} />; }

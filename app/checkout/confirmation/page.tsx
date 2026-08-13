@@ -1,29 +1,30 @@
 'use client';
 
-import React, { useEffect, useState, use } from 'react';
+import React, { useEffect, useState, use, useRef } from 'react';
 import Link from 'next/link';
-import { db } from '@/lib/firebase/config';
-import { doc, getDoc } from 'firebase/firestore';
 import { Booking, Order } from '@/lib/types';
 import { CheckCircle2, AlertTriangle, Printer, Home, Phone } from 'lucide-react';
 import Footer from '@/components/Footer';
+import { useCart } from '@/lib/context/CartContext';
 
 interface PageProps {
-  searchParams: Promise<{ type?: string; id?: string; reference?: string }>;
+  searchParams: Promise<{ type?: string; id?: string; reference?: string; trxref?: string }>;
 }
 
 export default function ConfirmationPage({ searchParams }: PageProps) {
   const params = use(searchParams);
   const type = params.type;
   const id = params.id;
+  const reference = params.reference || params.trxref;
 
   const [booking, setBooking] = useState<Booking | null>(null);
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
-  const [verifyAttempts, setVerifyAttempts] = useState(0);
+  const [retryToken, setRetryToken] = useState(0);
+  const { clearCart } = useCart();
+  const cartClearedRef = useRef(false);
   const isBookingEnquiry = type === 'booking' && booking?.paymentMode === 'ENQUIRY';
 
-  // Poll database to verify paymentStatus changes to PAID (in case webhook is still processing)
   useEffect(() => {
     if (!id || !type) {
       setLoading(false);
@@ -31,23 +32,32 @@ export default function ConfirmationPage({ searchParams }: PageProps) {
     }
 
     let isMounted = true;
-    
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    let attempts = 0;
+
+    const verifyWithPaystack = async () => {
+      if (!reference) return;
+      try {
+        await fetch(`/api/paystack/verify?reference=${encodeURIComponent(reference)}&type=${encodeURIComponent(type)}&id=${encodeURIComponent(id)}`, { cache: 'no-store' });
+      } catch (error) {
+        console.error('Paystack verification request failed:', error);
+      }
+    };
+
     const checkPayment = async () => {
       try {
-        const docRef = doc(db, type === 'booking' ? 'bookings' : 'orders', id);
-        const snap = await getDoc(docRef);
-
-        if (snap.exists()) {
-          const data = snap.data();
+        const statusResponse = await fetch(`/api/paystack/status?type=${encodeURIComponent(type)}&id=${encodeURIComponent(id)}${reference ? `&reference=${encodeURIComponent(reference)}` : ''}`, { cache: 'no-store' });
+        if (statusResponse.ok) {
+          const data = await statusResponse.json();
           if (type === 'booking') {
-            setBooking({ id: snap.id, ...data } as Booking);
-            if (data.paymentStatus === 'PAID' || data.paymentMode === 'ENQUIRY') {
+            setBooking(data as Booking);
+            if (data.paymentStatus === 'PAID' || data.paymentStatus === 'FAILED' || data.paymentMode === 'ENQUIRY') {
               setLoading(false);
               return;
             }
           } else {
-            setOrder({ id: snap.id, ...data } as Order);
-            if (data.paymentStatus === 'PAID') {
+            setOrder(data as Order);
+            if (data.paymentStatus === 'PAID' || data.paymentStatus === 'FAILED') {
               setLoading(false);
               return;
             }
@@ -57,21 +67,29 @@ export default function ConfirmationPage({ searchParams }: PageProps) {
         console.error('Failed to load status:', e);
       }
 
-      // If not paid and attempts < 10, poll again in 2.5 seconds
-      if (verifyAttempts < 10 && isMounted) {
-        setVerifyAttempts((prev) => prev + 1);
-        setTimeout(checkPayment, 2500);
+      if (attempts < 10 && isMounted) {
+        attempts += 1;
+        timeout = setTimeout(checkPayment, 2500);
       } else {
         setLoading(false);
       }
     };
 
+    verifyWithPaystack();
     checkPayment();
 
     return () => {
       isMounted = false;
+      if (timeout) clearTimeout(timeout);
     };
-  }, [id, type, verifyAttempts]);
+  }, [id, type, reference, retryToken]);
+
+  useEffect(() => {
+    if (type === 'order' && order?.paymentStatus === 'PAID' && !cartClearedRef.current) {
+      cartClearedRef.current = true;
+      clearCart();
+    }
+  }, [clearCart, order?.paymentStatus, type]);
 
   const handlePrint = () => {
     window.print();
@@ -111,6 +129,30 @@ export default function ConfirmationPage({ searchParams }: PageProps) {
 
   // Not Verified Paid yet
   const isPaid = type === 'booking' ? booking?.paymentStatus === 'PAID' : order?.paymentStatus === 'PAID';
+  const isFailed = type === 'booking' ? booking?.paymentStatus === 'FAILED' : order?.paymentStatus === 'FAILED';
+
+  if (isFailed) {
+    return (
+      <main className="pt-32 min-h-screen bg-[var(--background)] text-[var(--foreground)] flex flex-col justify-between">
+        <div className="max-w-[90vw] mx-auto pb-24 w-full flex-grow flex items-center justify-center">
+          <div className="section-shell p-10 text-center max-w-lg bg-white flex flex-col gap-6 items-center">
+            <AlertTriangle className="text-red-500" size={48} />
+            <h2 className="font-serif text-3xl text-[var(--foreground)]">Payment not completed</h2>
+            <p className="font-sans text-sm text-[var(--text-muted)] leading-relaxed">
+              No additional charge was made. Your original artwork has been released so you can try again safely.
+            </p>
+            <Link href={type === 'order' ? '/checkout' : '/experiences'} className="px-6 py-3 bg-[var(--accent-purple)] text-white rounded-full font-mono text-xs uppercase tracking-widest hover:bg-[var(--accent-orange)] transition-all cursor-pointer font-bold shadow-sm">
+              {type === 'order' ? 'Try checkout again' : 'Return to experiences'}
+            </Link>
+            <Link href="/contact" className="font-mono text-xs uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--accent-purple)]">
+              Contact Studio Support
+            </Link>
+          </div>
+        </div>
+        <Footer />
+      </main>
+    );
+  }
 
   if (!isPaid && !isBookingEnquiry) {
     return (
@@ -126,7 +168,7 @@ export default function ConfirmationPage({ searchParams }: PageProps) {
             <button
               onClick={() => {
                 setLoading(true);
-                setVerifyAttempts(0);
+                setRetryToken((value) => value + 1);
               }}
               className="px-6 py-3 bg-[var(--accent-purple)] text-white rounded-full font-mono text-xs uppercase tracking-widest hover:bg-[var(--accent-orange)] transition-all cursor-pointer font-bold shadow-sm"
             >

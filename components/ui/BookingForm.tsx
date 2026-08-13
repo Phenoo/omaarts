@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Activity, ActivityVariant } from '../../lib/types';
 import DatePicker from './DatePicker';
@@ -8,6 +8,7 @@ import TimeSlotPicker from './TimeSlotPicker';
 import { calculateActivityPrice } from '../../lib/utils/pricing';
 import { validateBookingInput, ValidationError } from '../../lib/validation';
 import { Calendar, Users, Clock, CreditCard, ClipboardList } from 'lucide-react';
+import { auth } from '@/lib/firebase/config';
 
 interface BookingSubmitResult {
   bookingId?: string;
@@ -43,6 +44,7 @@ export default function BookingForm({ activity, onSuccess }: BookingFormProps) {
   const [errors, setErrors] = useState<ValidationError[]>([]);
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const checkoutIdRef = useRef<string | null>(null);
 
   // Default slots (Can be customized via site settings later)
   const defaultSlots = ['10:00', '12:00', '14:00', '16:00', '18:00', '20:00'];
@@ -91,13 +93,17 @@ export default function BookingForm({ activity, onSuccess }: BookingFormProps) {
     }
 
     setLoading(true);
+    const checkoutId = checkoutIdRef.current || (checkoutIdRef.current = crypto.randomUUID());
+    let responseReceived = false;
 
     try {
+      const authToken = auth.currentUser ? await auth.currentUser.getIdToken() : '';
       // Post to checkout initialization route
       const response = await fetch('/api/paystack/initialize', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}) },
         body: JSON.stringify({
+          checkoutId,
           type: 'booking',
           firstName,
           lastName,
@@ -113,6 +119,7 @@ export default function BookingForm({ activity, onSuccess }: BookingFormProps) {
         }),
       });
 
+      responseReceived = true;
       const resData: BookingSubmitResult = await response.json();
 
       if (!response.ok || resData.success === false) {
@@ -130,6 +137,7 @@ export default function BookingForm({ activity, onSuccess }: BookingFormProps) {
       }
     } catch (err: unknown) {
       console.error('Booking checkout error:', err);
+      if (responseReceived) checkoutIdRef.current = null;
       setSubmitError(err instanceof Error ? err.message : 'An unexpected error occurred. Please try again.');
       setLoading(false);
     }

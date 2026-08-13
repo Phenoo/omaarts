@@ -56,17 +56,19 @@ service cloud.firestore {
 
     // Bookings collection rules
     match /bookings/{bookingId} {
-      // Guests can create bookings; logged-in users can read their own; staff can read all
-      allow read: if true; // anyone who knows the secure ID can view their receipt
-      allow create: if true; // anyone can book
+      // Checkout records are created by the server. Customers read only their own records;
+      // guest receipts are served through the server-side payment status endpoint.
+      allow read: if isStaff() || (request.auth != null && resource.data.userId == request.auth.uid);
+      allow create: if isStaff();
       allow update, delete: if isStaff();
     }
 
     // Orders collection rules
     match /orders/{orderId} {
-      // Guests can create orders; logged-in users can read their own; staff can read all
-      allow read: if true; // anyone who knows the secure ID can view their receipt
-      allow create: if true; // guest checkout supported
+      // Checkout records are created by the server. Customers read only their own records;
+      // guest receipts are served through the server-side payment status endpoint.
+      allow read: if isStaff() || (request.auth != null && resource.data.userId == request.auth.uid);
+      allow create: if isStaff();
       allow update, delete: if isStaff();
     }
 
@@ -130,4 +132,3 @@ service cloud.firestore {
     }
   }
 }
-

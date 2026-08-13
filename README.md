@@ -1,36 +1,30 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Artsy by Oma
 
-## Getting Started
+Next.js site for Oma Achebe’s contemporary art practice and creative studio in Awka, Nigeria.
 
-First, run the development server:
+## Local development
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Use `.env.example` as the production configuration checklist. Keep `.env.local` and hosted secrets out of version control.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Verification
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run typecheck
+npm run build
+npm run lint
+```
 
-## Learn More
+The canonical public routes are `/`, `/art`, `/experiences`, `/private-events`, `/about`, and `/contact`. Legacy `/portfolio`, `/work`, `/shop`, `/activities`, `/events`, and `/services` paths redirect to the new information architecture.
 
-To learn more about Next.js, take a look at the following resources:
+## Production requirements
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Configure Firebase client and Admin credentials before enabling enquiry persistence, accounts, or checkout.
+- Configure Paystack server/public keys only if checkout is enabled, and verify webhook signing in the deployed environment.
+- Configure Resend or SMTP from `support@artsybyoma.com`; publish SPF, DKIM, and DMARC for the sending domain.
+- Replace the marked policy placeholders in Privacy, Terms, Shipping, Returns, and Commission Terms with owner/legal-approved copy.
+- Configure error monitoring, analytics conversion events, uptime checks, backups, and recovery runbooks in the deployment platform.

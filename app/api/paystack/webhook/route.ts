@@ -1,97 +1,82 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { getAdminContext } from '@/lib/firebase/admin';
-import { processSuccessfulPayment } from '@/lib/firebase/services/paymentHandler';
+import { markPaymentFailed, processSuccessfulPayment } from '@/lib/firebase/services/paymentHandler';
 import { sendBookingConfirmationEmail, sendOrderConfirmationEmail } from '@/lib/email/resend';
+
+export const dynamic = 'force-dynamic';
+export const preferredRegion = 'auto';
+export const runtime = 'nodejs';
 
 function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : 'Internal server error.';
 }
 
+function validSignature(rawBody: string, signature: string, secret: string) {
+  const expected = crypto.createHmac('sha512', secret).update(rawBody).digest();
+  const received = Buffer.from(signature, 'hex');
+  return received.length === expected.length && crypto.timingSafeEqual(received, expected);
+}
+
+async function sendReceipt(adminDb: NonNullable<ReturnType<typeof getAdminContext>['adminDb']>, type: 'booking' | 'order', id: string) {
+  try {
+    const snapshot = await adminDb.collection(type === 'booking' ? 'bookings' : 'orders').doc(id).get();
+    if (!snapshot.exists) return;
+    const data = { id: snapshot.id, ...snapshot.data() };
+    if (type === 'booking') await sendBookingConfirmationEmail(data as Parameters<typeof sendBookingConfirmationEmail>[0]);
+    else await sendOrderConfirmationEmail(data as Parameters<typeof sendOrderConfirmationEmail>[0]);
+  } catch (error) {
+    console.error('Webhook receipt email failed:', error);
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const { adminDb, isConfigured } = getAdminContext();
+    const secret = process.env.PAYSTACK_SECRET_KEY;
+    if (!isConfigured || !adminDb || !secret) return NextResponse.json({ error: 'Webhook is not configured.' }, { status: 503 });
 
-    if (!isConfigured || !adminDb) {
-      return NextResponse.json({
-        error: 'Firebase Admin credentials are not configured in your project settings. Please add FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY.'
-      }, { status: 500 });
-    }
     const rawBody = await request.text();
-    const signature = request.headers.get('x-paystack-signature');
+    const signature = request.headers.get('x-paystack-signature') || '';
+    if (!signature || !validSignature(rawBody, signature, secret)) return NextResponse.json({ error: 'Signature verification failed.' }, { status: 401 });
 
-    if (!signature) {
-      return NextResponse.json({ error: 'Signature header is missing.' }, { status: 401 });
+    let payload: { event?: unknown; data?: Record<string, unknown> };
+    try {
+      payload = JSON.parse(rawBody) as { event?: unknown; data?: Record<string, unknown> };
+    } catch {
+      return NextResponse.json({ error: 'Invalid webhook payload.' }, { status: 400 });
     }
 
-    const paystackSecret = process.env.PAYSTACK_SECRET_KEY;
-    if (!paystackSecret) {
-      return NextResponse.json({ error: 'Paystack is not configured on the server.' }, { status: 500 });
-    }
-
-    // 1. Verify Paystack Webhook Signature using HMAC SHA512
-    const hash = crypto
-      .createHmac('sha512', paystackSecret)
-      .update(rawBody)
-      .digest('hex');
-
-    if (hash !== signature) {
-      return NextResponse.json({ error: 'Signature verification failed.' }, { status: 401 });
-    }
-
-    // 2. Parse event payload
-    const payload = JSON.parse(rawBody);
     const event = payload.event;
+    const transaction = payload.data || {};
+    const metadata = transaction.metadata && typeof transaction.metadata === 'object' ? transaction.metadata as Record<string, unknown> : {};
+    const type = metadata.type === 'booking' || metadata.type === 'order' ? metadata.type : undefined;
+    const id = type === 'booking' ? metadata.bookingId : type === 'order' ? metadata.orderId : undefined;
+    const reference = typeof transaction.reference === 'string' ? transaction.reference : '';
 
-    if (event === 'charge.success') {
-      const tx = payload.data;
+    if (!type || typeof id !== 'string' || !id || !reference) return NextResponse.json({ status: 'ignored' });
+    if (transaction.currency !== 'NGN') return NextResponse.json({ status: 'ignored' });
 
-      if (tx.status === 'success' && tx.currency === 'NGN') {
-        const reference = tx.reference;
-        const metadata = tx.metadata || {};
-        const type = metadata.type; // 'booking' or 'order'
-        const id = type === 'booking' ? metadata.bookingId : metadata.orderId;
-        const amountNaira = tx.amount / 100;
-
-        if (type && id) {
-          // Process payment updates securely
-          const result = await processSuccessfulPayment({
-            type,
-            id,
-            reference,
-            amount: amountNaira,
-            channel: tx.channel,
-            paidAt: tx.paid_at,
-          });
-
-          // Dispatch receipt email if first time success
-          if (result && 'success' in result && result.success) {
-            try {
-              const docSnap = await adminDb.collection(type === 'booking' ? 'bookings' : 'orders').doc(id).get();
-              if (docSnap.exists) {
-                const docData = { id: docSnap.id, ...docSnap.data() };
-                if (type === 'booking') {
-                  await sendBookingConfirmationEmail(docData as Parameters<typeof sendBookingConfirmationEmail>[0]);
-                } else {
-                  await sendOrderConfirmationEmail(docData as Parameters<typeof sendOrderConfirmationEmail>[0]);
-                }
-              }
-            } catch (emailErr) {
-              console.error('Failed to trigger email confirmation in webhook:', emailErr);
-            }
-          }
-        }
-      }
+    if (event === 'charge.success' && transaction.status === 'success') {
+      const amount = Number(transaction.amount) / 100;
+      const result = await processSuccessfulPayment({
+        type,
+        id,
+        reference,
+        amount,
+        currency: 'NGN',
+        email: transaction.customer && typeof transaction.customer === 'object' && typeof (transaction.customer as Record<string, unknown>).email === 'string' ? (transaction.customer as Record<string, unknown>).email as string : undefined,
+        channel: typeof transaction.channel === 'string' ? transaction.channel : undefined,
+        paidAt: typeof transaction.paid_at === 'string' ? transaction.paid_at : undefined,
+      });
+      if (result && 'success' in result && result.success) await sendReceipt(adminDb, type, id);
+    } else if (event === 'charge.failed') {
+      await markPaymentFailed({ type, id, reference, reason: typeof transaction.gateway_response === 'string' ? transaction.gateway_response : `Paystack event: ${String(event)}` });
     }
 
-    // Always respond with 200 OK to acknowledge receipt of event
     return NextResponse.json({ status: 'success' });
-
   } catch (error: unknown) {
     console.error('Webhook execution failed:', error);
     return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
   }
 }
-export const dynamic = 'force-dynamic';
-export const preferredRegion = 'auto'; // Next.js specific config
-export const runtime = 'nodejs';

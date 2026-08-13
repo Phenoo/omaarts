@@ -84,7 +84,7 @@ export default function WishlistPage() {
               Browse our art collection and save pieces you love.
             </p>
             <Link
-              href="/shop"
+              href="/art"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--accent-purple)] hover:bg-[var(--accent-orange)] text-white font-mono text-xs uppercase tracking-widest transition-all cursor-pointer"
             >
               Explore Art Shop
@@ -99,7 +99,7 @@ export default function WishlistPage() {
                 className="section-shell overflow-hidden bg-white/80 group"
               >
                 {/* Image */}
-                <Link href={`/shop/${item.artworkId}`} className="block">
+                <Link href={`/art/${item.artworkId}`} className="block">
                   <div className="relative aspect-[4/3] overflow-hidden bg-[var(--surface-soft)]">
                     <Image
                       src={item.image}
@@ -112,7 +112,7 @@ export default function WishlistPage() {
 
                 {/* Content */}
                 <div className="p-5">
-                  <Link href={`/shop/${item.artworkId}`}>
+                  <Link href={`/art/${item.artworkId}`}>
                     <h3 className="font-serif text-lg tracking-tight hover:text-[var(--accent-purple)] transition-colors">
                       {item.title}
                     </h3>

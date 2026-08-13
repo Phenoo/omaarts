@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useCustomerAuth } from '@/lib/context/CustomerAuthContext';
 import { db } from '@/lib/firebase/config';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
-import { ShoppingBag, ArrowRight, Loader2, Package } from 'lucide-react';
+import { ShoppingBag, Loader2, Package } from 'lucide-react';
 import Footer from '@/components/Footer';
 
 interface OrderItem {
@@ -113,7 +113,7 @@ export default function OrdersPage() {
               Browse our art collection and place your first order.
             </p>
             <Link
-              href="/shop"
+              href="/art"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--accent-purple)] hover:bg-[var(--accent-orange)] text-white font-mono text-xs uppercase tracking-widest transition-all cursor-pointer"
             >
               <ShoppingBag size={14} />

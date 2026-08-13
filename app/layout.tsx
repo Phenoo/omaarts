@@ -1,40 +1,23 @@
 import type { Metadata } from "next";
-import { DM_Sans } from "next/font/google";
-import { Space_Grotesk } from "next/font/google";
-import { IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 
 import SmoothScroller from '../components/SmoothScroller';
-import CustomCursor from '../components/CustomCursor';
 import NavigationOverlay from '../components/NavigationOverlay';
 import { CartProvider } from '@/lib/context/CartContext';
 import { CustomerAuthProvider } from '@/lib/context/CustomerAuthContext';
 
-const dmSans = DM_Sans({
-  subsets: ["latin"],
-  variable: "--font-dm-sans",
-  weight: ["400", "500", "700"],
-});
-
-const spaceGrotesk = Space_Grotesk({
-  subsets: ["latin"],
-  variable: "--font-space-grotesk",
-  weight: ["500", "700"],
-});
-
-const ibmPlexMono = IBM_Plex_Mono({
-  subsets: ["latin"],
-  variable: "--font-ibm-plex-mono",
-  weight: ["400", "500"],
-});
-
 export const metadata: Metadata = {
   metadataBase: new URL('https://artsybyoma.com'),
-  title: 'Artsy by Oma | Nigerian Contemporary Art',
-  description: 'Portfolio of Artsy by Oma - Exploring memory, identity, and vibrant chaos through mixed media.',
+  title: {
+    default: 'Artsy by Oma | Contemporary Artist in Awka, Nigeria',
+    template: '%s | Artsy by Oma',
+  },
+  description: 'Original contemporary artwork, guided studio experiences, and private creative events by Oma Achebe in Awka, Nigeria.',
+  alternates: { canonical: '/' },
+  robots: { index: true, follow: true },
   openGraph: {
     title: 'Artsy by Oma | Nigerian Contemporary Art',
-    description: 'Portfolio of Artsy by Oma - Exploring memory, identity, and vibrant chaos through mixed media.',
+    description: 'Original contemporary artwork, guided studio experiences, and private creative events by Oma Achebe in Awka, Nigeria.',
     url: 'https://artsybyoma.com',
     siteName: 'Artsy by Oma',
     images: [
@@ -45,13 +28,13 @@ export const metadata: Metadata = {
         alt: 'Artsy by Oma - Nigerian Contemporary Art',
       },
     ],
-    locale: 'en_US',
+    locale: 'en_NG',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Artsy by Oma | Nigerian Contemporary Art',
-    description: 'Portfolio of Artsy by Oma - Exploring memory, identity, and vibrant chaos through mixed media.',
+    description: 'Original contemporary artwork, guided studio experiences, and private creative events by Oma Achebe in Awka, Nigeria.',
     images: ['/images/oma-logo.jpg'],
   },
 };
@@ -63,12 +46,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${dmSans.variable} ${spaceGrotesk.variable} ${ibmPlexMono.variable} antialiased`}>
+      <body className="antialiased">
         <CustomerAuthProvider>
           <CartProvider>
             <SmoothScroller>
-              <CustomCursor />
               <NavigationOverlay />
+              <a href="#main-content" className="skip-link">Skip to content</a>
               {children}
             </SmoothScroller>
           </CartProvider>
@@ -77,4 +60,3 @@ export default function RootLayout({
     </html>
   );
 }
-

@@ -2,10 +2,13 @@ import React from 'react';
 import Link from 'next/link';
 import Footer from '@/components/Footer';
 import { Home, Palette, Paintbrush, ShoppingBag, ArrowLeft } from 'lucide-react';
+import { createPageMetadata } from '@/lib/seo';
+
+export const metadata = createPageMetadata({ title: 'Page not found', description: 'The Artsy by Oma page you are looking for could not be found.', pathname: '/404', noIndex: true });
 
 export default function NotFound() {
   return (
-    <main className="pt-32 min-h-screen bg-[var(--background)] text-[var(--foreground)] flex flex-col justify-between">
+    <main id="main-content" className="pt-32 min-h-screen bg-[var(--background)] text-[var(--foreground)] flex flex-col justify-between">
       <div className="max-w-[90vw] md:max-w-4xl mx-auto py-16 px-4 w-full flex-grow flex flex-col justify-center items-center text-center">
         
         {/* Decorative Badge */}
@@ -40,18 +43,18 @@ export default function NotFound() {
           </Link>
 
           <Link
-            href="/portfolio"
+            href="/art"
             className="section-shell p-6 flex flex-col items-center justify-center gap-3 hover:border-[var(--accent-purple)] hover:shadow-md transition-all group"
           >
             <div className="w-10 h-10 rounded-full bg-[var(--surface-soft)] text-[var(--accent-purple)] flex items-center justify-center group-hover:scale-110 transition-transform">
               <Palette size={20} />
             </div>
-            <span className="font-serif text-base text-[var(--foreground)]">Portfolio</span>
+            <span className="font-serif text-base text-[var(--foreground)]">Art</span>
             <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-muted)]">Fine Art Collection</span>
           </Link>
 
           <Link
-            href="/activities"
+            href="/experiences"
             className="section-shell p-6 flex flex-col items-center justify-center gap-3 hover:border-[var(--accent-purple)] hover:shadow-md transition-all group"
           >
             <div className="w-10 h-10 rounded-full bg-[var(--surface-soft)] text-[var(--accent-purple)] flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -62,13 +65,13 @@ export default function NotFound() {
           </Link>
 
           <Link
-            href="/shop"
+            href="/art"
             className="section-shell p-6 flex flex-col items-center justify-center gap-3 hover:border-[var(--accent-purple)] hover:shadow-md transition-all group"
           >
             <div className="w-10 h-10 rounded-full bg-[var(--surface-soft)] text-[var(--accent-purple)] flex items-center justify-center group-hover:scale-110 transition-transform">
               <ShoppingBag size={20} />
             </div>
-            <span className="font-serif text-base text-[var(--foreground)]">Shop</span>
+            <span className="font-serif text-base text-[var(--foreground)]">Available works</span>
             <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-muted)]">Original Works</span>
           </Link>
         </div>

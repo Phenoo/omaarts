@@ -35,7 +35,7 @@ export default function CartPage() {
               Discover original paintings, contemporary mixed media, and portfolio works available for purchase in our shop.
             </p>
             <Link
-              href="/shop"
+              href="/art"
               className="mt-2 px-8 py-3 rounded-full bg-[var(--accent-purple)] text-white font-mono text-xs uppercase tracking-widest hover:bg-[var(--accent-orange)] transition-colors"
             >
               Explore Art Shop

@@ -1,0 +1,3 @@
+import PolicyPage from '@/components/PolicyPage'; import { createPageMetadata } from '@/lib/seo';
+export const metadata = createPageMetadata({ title: 'Shipping and delivery', description: 'Learn how original artworks move from the Artsy by Oma studio in Awka to their new home.', pathname: '/shipping' });
+export default function ShippingPage() { return <PolicyPage label="Policy" title="Shipping and delivery" intro="How original works move from the studio to their new home." sections={[{ heading: 'Confirm the operating model', body: '[OWNER INPUT REQUIRED] Add shipping zones, carrier, packaging standard, insurance, delivery windows, pickup arrangements, and who pays duties or delivery fees.' }]} />; }

@@ -79,6 +79,8 @@ export interface Artwork {
   status: ArtworkStatus;
   createdAt: string;
   updatedAt: string;
+  reservationId?: string;
+  reservationExpiresAt?: string;
 }
 
 export interface Category {
@@ -164,6 +166,8 @@ export interface Order {
   paymentStatus: PaymentStatus;
   fulfilmentStatus: FulfilmentStatus;
   paystackReference?: string;
+  checkoutId?: string;
+  reservationExpiresAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -220,7 +224,7 @@ export interface BlockedDate {
 
 export interface Enquiry {
   id: string;
-  type: 'corporate' | 'space';
+  type: 'corporate' | 'space' | 'private-event' | 'contact' | 'artwork' | 'commission';
   name: string;
   company?: string;
   email: string;

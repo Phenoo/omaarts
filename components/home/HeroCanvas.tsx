@@ -40,6 +40,7 @@ export default function HeroCanvas() {
 
   return (
     <section
+      id="home-hero"
       ref={containerRef}
       className="relative w-full h-screen overflow-hidden bg-[var(--background)]"
     >
@@ -67,7 +68,7 @@ export default function HeroCanvas() {
         <p className="mt-5 max-w-2xl text-sm md:text-lg font-sans text-white/90 drop-shadow-sm leading-relaxed">
           Creative experiences, original art, unforgettable moments.
         </p>
-        
+
         <div className="mt-8 flex gap-4 pointer-events-auto">
           <Link
             href="/activities"

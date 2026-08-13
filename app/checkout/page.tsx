@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '@/lib/context/CartContext';
@@ -28,6 +28,7 @@ export default function CheckoutPage() {
   const [errors, setErrors] = useState<ValidationError[]>([]);
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const checkoutIdRef = useRef<string | null>(null);
 
   // Pre-fill from profile when logged in
   useEffect(() => {
@@ -87,13 +88,17 @@ export default function CheckoutPage() {
     }
 
     setLoading(true);
+    const checkoutId = checkoutIdRef.current || (checkoutIdRef.current = crypto.randomUUID());
+    let responseReceived = false;
 
     try {
+      const authToken = user ? await user.getIdToken() : '';
       // Call secure Paystack initialize route
       const response = await fetch('/api/paystack/initialize', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}) },
         body: JSON.stringify({
+          checkoutId,
           type: 'order',
           firstName,
           lastName,
@@ -102,7 +107,6 @@ export default function CheckoutPage() {
           deliveryOption,
           deliveryAddress: deliveryOption === 'delivery' ? deliveryAddress : '',
           orderNotes,
-          userId: user?.uid || null,
           items: cart.map((item) => ({
             artworkId: item.artworkId,
             title: item.title,
@@ -112,6 +116,7 @@ export default function CheckoutPage() {
         }),
       });
 
+      responseReceived = true;
       const resData = await response.json();
 
       if (!response.ok || resData.success === false) {
@@ -126,6 +131,7 @@ export default function CheckoutPage() {
       }
     } catch (err: unknown) {
       console.error('Checkout submit error:', err);
+      if (responseReceived) checkoutIdRef.current = null;
       setSubmitError(err instanceof Error ? err.message : 'An unexpected error occurred. Please try again.');
       setLoading(false);
     }
@@ -139,7 +145,7 @@ export default function CheckoutPage() {
             <ShoppingBag className="mx-auto text-[var(--accent-purple)] mb-4" size={40} />
             <h2 className="font-serif text-2xl mb-2">Cart is empty</h2>
             <p className="font-sans text-sm text-[var(--text-muted)] mb-6">Add artworks to your cart before checking out.</p>
-            <Link href="/shop" className="px-6 py-2.5 bg-[var(--accent-purple)] text-white rounded-full font-mono text-xs uppercase tracking-widest hover:bg-[var(--accent-orange)] transition-colors">
+            <Link href="/art" className="px-6 py-2.5 bg-[var(--accent-purple)] text-white rounded-full font-mono text-xs uppercase tracking-widest hover:bg-[var(--accent-orange)] transition-colors">
               Go to Art Shop
             </Link>
           </div>
@@ -185,7 +191,7 @@ export default function CheckoutPage() {
           )}
           
           {/* Checkout Form */}
-          <form onSubmit={handleSubmit} className="lg:col-span-2 flex flex-col gap-8">
+          <form id="checkout-form" onSubmit={handleSubmit} className="lg:col-span-2 flex flex-col gap-8">
             
             {/* 1. Contact Details */}
             <div className="section-shell p-6 md:p-8 bg-white/90 flex flex-col gap-6">
@@ -380,7 +386,8 @@ export default function CheckoutPage() {
             </div>
 
             <button
-              onClick={handleSubmit}
+              type="submit"
+              form="checkout-form"
               disabled={loading}
               className={`w-full py-4 rounded-full font-mono text-xs uppercase tracking-widest font-bold text-center transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm
                 ${loading 

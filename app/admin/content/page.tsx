@@ -52,7 +52,7 @@ export default function AdminContentPage() {
           aboutBio: "Artsy by Oma is a creative studio and art gallery founded by Oma Achebe, focused on sharing the beauty of contemporary painting, scented candle crafting, and design sessions.",
           aboutStory: "Oma Achebe is a Nigerian contemporary painter. Her work merges vibrant mixed media details with expressionist brushstrokes, creating visual spaces that represent identity, cultural memories, and structured chaos.",
           shopAlert: "All original canvas purchases come with signed certificates of authenticity.",
-          footerTagline: "Paint & Sip with Oma | Creative Studio & Art Gallery in Nigeria."
+          footerTagline: "Artsy by Oma | Contemporary Art & Creative Studio in Nigeria."
         };
         setContent(defaults);
         setHomeHeroTitle(defaults.homeHeroTitle);

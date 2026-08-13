@@ -1,0 +1,3 @@
+import PolicyPage from '@/components/PolicyPage'; import { createPageMetadata } from '@/lib/seo';
+export const metadata = createPageMetadata({ title: 'Terms', description: 'Review the terms for using Artsy by Oma services, artwork enquiries, studio bookings, and purchases.', pathname: '/terms' });
+export default function TermsPage() { return <PolicyPage label="Policy" title="Terms" intro="The terms that govern use of Artsy by Oma services and purchases." sections={[{ heading: 'Owner decision required', body: '[OWNER / LEGAL REVIEW REQUIRED] Add approved terms for artwork enquiries and purchases, studio bookings, commissions, account use, and limitation of liability before enabling checkout.' }]} />; }

@@ -1,8 +1,10 @@
 import { cert, getApp, getApps, initializeApp } from 'firebase-admin/app';
+import { getAuth, type Auth } from 'firebase-admin/auth';
 import { getFirestore, type Firestore } from 'firebase-admin/firestore';
 
 export interface AdminContext {
   adminDb: Firestore | null;
+  adminAuth: Auth | null;
   error?: string;
   isConfigured: boolean;
 }
@@ -36,6 +38,7 @@ function buildAdminContext(): AdminContext {
   if (!projectId || !clientEmail || !privateKey) {
     return {
       adminDb: null,
+      adminAuth: null,
       error: 'Firebase Admin credentials are incomplete.',
       isConfigured: false,
     };
@@ -55,6 +58,7 @@ function buildAdminContext(): AdminContext {
 
     return {
       adminDb: getFirestore(app),
+      adminAuth: getAuth(app),
       isConfigured: true,
     };
   } catch (error: unknown) {
@@ -63,6 +67,7 @@ function buildAdminContext(): AdminContext {
 
     return {
       adminDb: null,
+      adminAuth: null,
       error: message,
       isConfigured: false,
     };

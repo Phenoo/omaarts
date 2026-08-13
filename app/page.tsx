@@ -4,6 +4,13 @@ import HeroCanvas from '../components/home/HeroCanvas';
 import FeaturedActivities from '../components/home/FeaturedActivities';
 import Footer from '../components/Footer';
 import { SELECTED_WORKS } from '@/lib/selectedWorks';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Artsy By Oma | Contemporary Artist and Creative Studio in Awka',
+  description: 'Discover original contemporary works, guided studio experiences, and private events by Oma Achebe at Artsy by Oma in Awka, Nigeria.',
+  alternates: { canonical: '/' },
+};
 
 const PRACTICE_AREAS = [
   {
@@ -60,7 +67,7 @@ const PRIVATE_EVENT_STEPS = [
 
 export default function Home() {
   return (
-    <main className="relative isolate overflow-hidden">
+    <main id="main-content" className="relative isolate overflow-hidden">
       <HeroCanvas />
 
       <div className="relative z-10">
@@ -109,7 +116,7 @@ export default function Home() {
               </div>
 
               <Link
-                href="/work"
+                href="/art"
                 className="w-fit rounded-full border border-[var(--accent-primary)] px-5 py-2.5 font-mono text-[11px] uppercase tracking-[0.18em] text-[var(--accent-primary)] transition-colors hover:bg-[var(--accent-primary)] hover:text-white"
               >
                 View Full Collection
@@ -268,7 +275,7 @@ export default function Home() {
 
                 <div className="mt-8 grid gap-3 sm:grid-cols-2">
                   <Link
-                    href="/events"
+                    href="/private-events"
                     className="inline-flex items-center justify-center rounded-full bg-white px-6 py-3 font-mono text-[11px] uppercase tracking-[0.18em] text-[var(--surface-strong)] transition-colors hover:bg-[var(--accent-orange)] hover:text-white"
                   >
                     Plan a Private Event
@@ -389,7 +396,7 @@ export default function Home() {
                   Contact Studio
                 </Link>
                 <Link
-                  href="/shop"
+                  href="/art"
                   className="rounded-full border border-[var(--border-soft)] px-6 py-3 font-mono text-[11px] uppercase tracking-[0.18em] text-[var(--foreground)] transition-colors hover:border-[var(--accent-primary)] hover:text-[var(--accent-primary)]"
                 >
                   Shop Available Pieces

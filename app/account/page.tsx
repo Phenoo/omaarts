@@ -212,7 +212,7 @@ export default function AccountDashboard() {
               <Package size={32} className="mx-auto text-[var(--border-soft)] mb-3" />
               <p className="text-sm text-[var(--text-muted)]">No orders yet.</p>
               <Link
-                href="/shop"
+                href="/art"
                 className="inline-flex items-center gap-1 mt-3 text-sm text-[var(--accent-purple)] hover:text-[var(--accent-orange)] transition-colors"
               >
                 Browse the shop <ArrowRight size={14} />
@@ -268,7 +268,7 @@ export default function AccountDashboard() {
               <Clock size={32} className="mx-auto text-[var(--border-soft)] mb-3" />
               <p className="text-sm text-[var(--text-muted)]">No bookings yet.</p>
               <Link
-                href="/activities"
+                href="/experiences"
                 className="inline-flex items-center gap-1 mt-3 text-sm text-[var(--accent-purple)] hover:text-[var(--accent-orange)] transition-colors"
               >
                 Book an experience <ArrowRight size={14} />

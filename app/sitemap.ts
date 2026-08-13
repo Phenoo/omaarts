@@ -1,35 +1,12 @@
 import { MetadataRoute } from 'next';
-import { SELECTED_WORKS } from '@/lib/selectedWorks';
+import { getPublicArtworks, getPublicExperiences } from '@/lib/public-data';
+import { SITE } from '@/lib/site';
+
+export const revalidate = 300;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://artsybyoma.com';
-  const currentDate = new Date().toISOString();
-
-  // Static site routes
-  const staticRoutes = [
-    { url: '', changeFrequency: 'daily' as const, priority: 1.0 },
-    { url: '/about', changeFrequency: 'monthly' as const, priority: 0.8 },
-    { url: '/portfolio', changeFrequency: 'weekly' as const, priority: 0.9 },
-    { url: '/work', changeFrequency: 'weekly' as const, priority: 0.8 },
-    { url: '/activities', changeFrequency: 'weekly' as const, priority: 0.9 },
-    { url: '/shop', changeFrequency: 'daily' as const, priority: 0.9 },
-    { url: '/services', changeFrequency: 'monthly' as const, priority: 0.8 },
-    { url: '/events', changeFrequency: 'weekly' as const, priority: 0.7 },
-    { url: '/contact', changeFrequency: 'monthly' as const, priority: 0.8 },
-  ].map((route) => ({
-    url: `${baseUrl}${route.url}`,
-    lastModified: currentDate,
-    changeFrequency: route.changeFrequency,
-    priority: route.priority,
-  }));
-
-  // Selected work detail pages
-  const workRoutes = SELECTED_WORKS.map((work) => ({
-    url: `${baseUrl}/work/${work.id}`,
-    lastModified: currentDate,
-    changeFrequency: 'monthly' as const,
-    priority: 0.7,
-  }));
-
-  return [...staticRoutes, ...workRoutes];
+  const [artworks, experiences] = await Promise.all([getPublicArtworks(), getPublicExperiences()]);
+  const now = new Date();
+  const staticRoutes = ['/', '/art', '/experiences', '/private-events', '/about', '/contact', '/privacy', '/terms', '/shipping', '/returns', '/commission-terms'].map((path) => ({ url: `${SITE.url}${path}`, lastModified: now, changeFrequency: path === '/' ? 'daily' as const : 'monthly' as const, priority: path === '/' ? .9 : .7 }));
+  return [...staticRoutes, ...artworks.map((artwork) => ({ url: `${SITE.url}/art/${artwork.slug}`, lastModified: new Date(artwork.updatedAt), changeFrequency: 'monthly' as const, priority: .7 })), ...experiences.map((experience) => ({ url: `${SITE.url}/experiences/${experience.slug}`, lastModified: new Date(experience.updatedAt), changeFrequency: 'monthly' as const, priority: .7 }))];
 }

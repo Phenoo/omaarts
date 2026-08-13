@@ -1,0 +1,3 @@
+import PolicyPage from '@/components/PolicyPage'; import { createPageMetadata } from '@/lib/seo';
+export const metadata = createPageMetadata({ title: 'Returns and refunds', description: 'Review the Artsy by Oma approach to artwork returns, booking changes, refunds, and payment issues.', pathname: '/returns' });
+export default function ReturnsPage() { return <PolicyPage label="Policy" title="Returns and refunds" intro="The studio’s approved approach to artwork, booking, and payment issues." sections={[{ heading: 'Confirm the policy before checkout', body: '[OWNER / LEGAL REVIEW REQUIRED] Add the final returns, cancellations, refunds, damaged-delivery, and payment-failure terms for original works and bookings.' }]} />; }

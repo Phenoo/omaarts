@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import { Booking, Order, TransactionalEmailPayload } from '../types';
+import { SITE } from '../site';
 
 const resendApiKey = process.env.RESEND_API_KEY;
 const requiredSupportAddress = 'support@artsybyoma.com';
@@ -74,6 +75,23 @@ async function sendEmail(payload: EmailDispatchPayload) {
   }
 
   console.error('Email delivery failed: neither Resend nor SMTP transport succeeded.');
+}
+
+function escapeHtml(value: string) {
+  return value.replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[character] || character));
+}
+
+export async function sendEnquiryReceivedEmail(enquiry: { reference: string; name: string; email: string; type: string; message?: string }) {
+  const name = escapeHtml(enquiry.name);
+  const type = escapeHtml(enquiry.type);
+  const message = escapeHtml(enquiry.message || 'No additional message.');
+  const text = [`Artsy by Oma enquiry received`, `Reference: ${enquiry.reference}`, `Name: ${enquiry.name}`, `Email: ${enquiry.email}`, `Type: ${enquiry.type}`, `Message: ${enquiry.message || 'No additional message.'}`, `Next step: the studio will reply from ${SITE.email}.`].join('\n');
+  await sendEmail({
+    to: [enquiry.email, SITE.email],
+    subject: `Artsy by Oma enquiry received (${enquiry.reference})`,
+    html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;color:#2d1658"><h1 style="color:#6f3bd2">Artsy by Oma</h1><p>Thanks, ${name}. We saved your ${type} enquiry.</p><p><strong>Reference:</strong> ${enquiry.reference}</p><p>${message}</p><p>We will reply from ${SITE.email} with the next step.</p></div>`,
+    text,
+  });
 }
 
 async function sendWithResend(payload: EmailDispatchPayload) {
@@ -179,7 +197,7 @@ export async function sendBookingConfirmationEmail(booking: Booking) {
       <body>
         <div class="container">
           <div class="logo">
-            <h2 style="font-family: Georgia, serif; color: #6f3bd2; margin: 0;">PAINT &amp; SIP WITH OMA</h2>
+            <h2 style="font-family: Georgia, serif; color: #6f3bd2; margin: 0;">ARTSY BY OMA</h2>
             <span style="font-size: 10px; font-family: monospace; letter-spacing: 0.1em; color: #f47b20; text-transform: uppercase;">Creative Studio</span>
           </div>
           
@@ -222,7 +240,7 @@ export async function sendBookingConfirmationEmail(booking: Booking) {
 
           <div class="extra-box">
             <strong>Studio Address &amp; Directions</strong>
-            ABO Gallery, No. 40 Majuo Street, Umudioka, Awka, Anambra State, Nigeria.<br/>
+            ${SITE.location}. Exact directions are shared with confirmed bookings.<br/>
             Please arrive 10-15 minutes early to select your canvas layout and settle in.
           </div>
 
@@ -345,7 +363,7 @@ export async function sendOrderConfirmationEmail(order: Order) {
           ` : `
             <div class="extra-box">
               <strong>Pickup Location</strong>
-              ABO Gallery, No. 40 Majuo Street, Umudioka, Awka, Anambra State, Nigeria.<br/>
+              ${SITE.location}. Exact pickup directions are shared with confirmed orders.<br/>
               Please call us at +2348167009545 to coordinate your preferred pickup hour.
             </div>
           `}

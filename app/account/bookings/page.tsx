@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useCustomerAuth } from '@/lib/context/CustomerAuthContext';
 import { db } from '@/lib/firebase/config';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
-import { Calendar, ArrowRight, Loader2, Clock, MapPin, Users } from 'lucide-react';
+import { Calendar, Loader2, Clock, MapPin, Users } from 'lucide-react';
 import Footer from '@/components/Footer';
 
 interface BookingDoc {
@@ -110,7 +110,7 @@ export default function BookingsPage() {
               Explore our art experiences and book your first session.
             </p>
             <Link
-              href="/activities"
+              href="/experiences"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--accent-purple)] hover:bg-[var(--accent-orange)] text-white font-mono text-xs uppercase tracking-widest transition-all cursor-pointer"
             >
               <Calendar size={14} />

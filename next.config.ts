@@ -15,16 +15,68 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: '/portfolio',
+        destination: '/art',
+        permanent: true,
+      },
+      {
+        source: '/portfolio/:slug',
+        destination: '/art/:slug',
+        permanent: true,
+      },
+      {
+        source: '/shop',
+        destination: '/art',
+        permanent: true,
+      },
+      {
+        source: '/shop/:slug',
+        destination: '/art/:slug',
+        permanent: true,
+      },
+      {
         source: '/work',
-        destination: '/portfolio',
+        destination: '/art',
         permanent: true,
       },
       {
         source: '/work/:id',
-        destination: '/portfolio/:id',
+        destination: '/art/:id',
+        permanent: true,
+      },
+      {
+        source: '/activities',
+        destination: '/experiences',
+        permanent: true,
+      },
+      {
+        source: '/activities/:slug',
+        destination: '/experiences/:slug',
+        permanent: true,
+      },
+      {
+        source: '/events',
+        destination: '/private-events',
+        permanent: true,
+      },
+      {
+        source: '/services',
+        destination: '/private-events',
         permanent: true,
       },
     ];
+  },
+  async headers() {
+    return [{
+      source: '/(.*)',
+      headers: [
+        { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+        { key: 'X-Content-Type-Options', value: 'nosniff' },
+        { key: 'X-Frame-Options', value: 'DENY' },
+        { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+        { key: 'Content-Security-Policy', value: "default-src 'self'; img-src 'self' data: https://firebasestorage.googleapis.com; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://api.paystack.co https://api.resend.com; frame-src https://checkout.paystack.com https://*.firebaseapp.com; object-src 'none'; base-uri 'self'; form-action 'self'" },
+      ],
+    }];
   },
 };
 
