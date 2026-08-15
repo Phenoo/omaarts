@@ -66,10 +66,33 @@ function buildAdminContext(): AdminContext {
       // settings can only be set once
     }
 
+    let authInstance: Auth | null = null;
+    let storageInstance: Storage | null = null;
+
     return {
       adminDb: db,
-      adminAuth: getAuth(app),
-      adminStorage: getStorage(app),
+      get adminAuth() {
+        if (!authInstance) {
+          try {
+            authInstance = getAuth(app);
+          } catch (err) {
+            console.error('Failed to initialize Firebase Admin Auth:', err);
+            return null;
+          }
+        }
+        return authInstance;
+      },
+      get adminStorage() {
+        if (!storageInstance) {
+          try {
+            storageInstance = getStorage(app);
+          } catch (err) {
+            console.error('Failed to initialize Firebase Admin Storage:', err);
+            return null;
+          }
+        }
+        return storageInstance;
+      },
       isConfigured: true,
     };
   } catch (error: unknown) {
