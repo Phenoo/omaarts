@@ -6,8 +6,16 @@ import Image from 'next/image';
 import { useCart } from '@/lib/context/CartContext';
 import { useCustomerAuth } from '@/lib/context/CustomerAuthContext';
 import { validateOrderInput, ValidationError } from '@/lib/validation';
-import { ArrowLeft, CreditCard, ShoppingBag, Truck, MapPin, UserCircle } from 'lucide-react';
+import { ArrowLeft, CreditCard, ShoppingBag, Truck, MapPin, UserCircle, AlertCircle, X } from 'lucide-react';
 import Footer from '@/components/Footer';
+
+const NIGERIAN_STATES = [
+  'Anambra', 'Lagos', 'FCT - Abuja', 'Enugu', 'Rivers', 'Abia', 'Delta', 'Imo',
+  'Ogun', 'Oyo', 'Akwa Ibom', 'Edo', 'Cross River', 'Adamawa', 'Bauchi', 'Bayelsa',
+  'Benue', 'Borno', 'Ebonyi', 'Ekiti', 'Gombe', 'Jigawa', 'Kaduna', 'Kano',
+  'Katsina', 'Kebbi', 'Kogi', 'Kwara', 'Nasarawa', 'Niger', 'Ondo', 'Osun',
+  'Plateau', 'Sokoto', 'Taraba', 'Yobe', 'Zamfara'
+];
 
 export default function CheckoutPage() {
   const { cart, cartSubtotal } = useCart();
@@ -19,9 +27,12 @@ export default function CheckoutPage() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
 
-  // Delivery options
-  const [deliveryOption, setDeliveryOption] = useState<'pickup' | 'delivery'>('pickup');
-  const [deliveryAddress, setDeliveryAddress] = useState('');
+  // Structured delivery address fields
+  const [deliveryOption, setDeliveryOption] = useState<'pickup' | 'delivery'>('delivery');
+  const [streetAddress, setStreetAddress] = useState('');
+  const [city, setCity] = useState('Awka');
+  const [state, setState] = useState('Anambra');
+  const [landmark, setLandmark] = useState('');
   const [orderNotes, setOrderNotes] = useState('');
 
   // UI States
@@ -39,7 +50,7 @@ export default function CheckoutPage() {
       setEmail(profile.email || '');
       setPhone(profile.phone || '');
       if (profile.defaultAddress) {
-        setDeliveryAddress(profile.defaultAddress);
+        setStreetAddress(profile.defaultAddress);
       }
     }
   }, [isAuthenticated, profile]);
@@ -67,12 +78,24 @@ export default function CheckoutPage() {
     }
 
     const customerName = `${firstName} ${lastName}`.trim();
+    const effectiveDeliveryAddress = deliveryOption === 'delivery'
+      ? [
+          streetAddress.trim(),
+          landmark.trim() ? `(Landmark: ${landmark.trim()})` : '',
+          city.trim(),
+          state.trim(),
+          'Nigeria',
+        ]
+          .filter(Boolean)
+          .join(', ')
+      : '';
+
     const validationErrors = validateOrderInput({
       customerName,
       email,
       phone,
       deliveryOption,
-      deliveryAddress: deliveryOption === 'delivery' ? deliveryAddress : undefined,
+      deliveryAddress: deliveryOption === 'delivery' ? effectiveDeliveryAddress : undefined,
     });
 
     if (firstName.trim() === '') {
@@ -81,9 +104,27 @@ export default function CheckoutPage() {
     if (lastName.trim() === '') {
       validationErrors.push({ field: 'lastName', message: 'Last name is required' });
     }
+    if (deliveryOption === 'delivery') {
+      if (streetAddress.trim().length < 5) {
+        validationErrors.push({ field: 'streetAddress', message: 'Please provide a street address (e.g. 12 Arthur Eze Avenue)' });
+      }
+      if (city.trim().length < 2) {
+        validationErrors.push({ field: 'city', message: 'City / Town is required' });
+      }
+      if (!state.trim()) {
+        validationErrors.push({ field: 'state', message: 'Please choose a state' });
+      }
+    }
 
     if (validationErrors.length > 0) {
       setErrors(validationErrors);
+      setSubmitError(validationErrors[0]?.message || 'Please complete all required fields below.');
+      setTimeout(() => {
+        const firstErrField = document.querySelector('.border-red-400') || document.getElementById('checkout-error-banner');
+        if (firstErrField) {
+          firstErrField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
       return;
     }
 
@@ -105,7 +146,7 @@ export default function CheckoutPage() {
           email,
           phone,
           deliveryOption,
-          deliveryAddress: deliveryOption === 'delivery' ? deliveryAddress : '',
+          deliveryAddress: effectiveDeliveryAddress,
           orderNotes,
           items: cart.map((item) => ({
             artworkId: item.artworkId,
@@ -132,7 +173,29 @@ export default function CheckoutPage() {
     } catch (err: unknown) {
       console.error('Checkout submit error:', err);
       if (responseReceived) checkoutIdRef.current = null;
-      setSubmitError(err instanceof Error ? err.message : 'An unexpected error occurred. Please try again.');
+      const message = err instanceof Error ? err.message : 'An unexpected error occurred. Please try again.';
+      setSubmitError(message);
+
+      // Highlight field based on error message
+      const lowerMsg = message.toLowerCase();
+      if (lowerMsg.includes('delivery address') || lowerMsg.includes('shipping address')) {
+        setErrors((prev) => [...prev.filter(e => e.field !== 'streetAddress'), { field: 'streetAddress', message }]);
+        setDeliveryOption('delivery');
+      } else if (lowerMsg.includes('email')) {
+        setErrors((prev) => [...prev.filter(e => e.field !== 'email'), { field: 'email', message }]);
+      } else if (lowerMsg.includes('phone')) {
+        setErrors((prev) => [...prev.filter(e => e.field !== 'phone'), { field: 'phone', message }]);
+      } else if (lowerMsg.includes('name')) {
+        setErrors((prev) => [...prev.filter(e => e.field !== 'firstName'), { field: 'firstName', message }]);
+      }
+
+      setTimeout(() => {
+        const banner = document.getElementById('checkout-error-banner');
+        if (banner) {
+          banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+
       setLoading(false);
     }
   };
@@ -165,13 +228,25 @@ export default function CheckoutPage() {
           Back to Cart
         </Link>
 
-        <div className="mb-12 border-b border-[var(--border-soft)] pb-8">
+        <div className="mb-8 border-b border-[var(--border-soft)] pb-6">
           <h1 className="font-serif text-5xl md:text-7xl text-[var(--accent-purple)] tracking-tight">Checkout</h1>
         </div>
 
         {submitError && (
-          <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-600 font-mono text-xs mb-8">
-            {submitError}
+          <div id="checkout-error-banner" className="p-4 md:p-5 rounded-2xl bg-red-50 border-2 border-red-300 text-red-800 flex items-start gap-3 shadow-sm mb-8">
+            <AlertCircle className="text-red-600 shrink-0 mt-0.5" size={20} />
+            <div className="flex-grow">
+              <p className="font-mono text-xs uppercase tracking-wider font-bold text-red-900 mb-0.5">Please check your details</p>
+              <p className="font-sans text-sm text-red-700 font-medium">{submitError}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSubmitError('')}
+              className="text-red-400 hover:text-red-700 transition-colors p-1"
+              aria-label="Dismiss error"
+            >
+              <X size={16} />
+            </button>
           </div>
         )}
 
@@ -208,7 +283,9 @@ export default function CheckoutPage() {
                       clearError('firstName');
                     }}
                     placeholder="Ada"
-                    className="w-full bg-white border border-[var(--border-soft)] rounded-xl py-3 px-4 focus:outline-none focus:border-[var(--accent-purple)] transition-colors font-sans text-sm"
+                    className={`w-full bg-white border rounded-xl py-3 px-4 focus:outline-none focus:border-[var(--accent-purple)] transition-colors font-sans text-sm
+                      ${getFieldError('firstName') ? 'border-red-400 bg-red-50/20' : 'border-[var(--border-soft)]'}
+                    `}
                   />
                   {getFieldError('firstName') && (
                     <span className="text-red-500 text-xs font-mono">{getFieldError('firstName')}</span>
@@ -225,7 +302,9 @@ export default function CheckoutPage() {
                       clearError('lastName');
                     }}
                     placeholder="Eze"
-                    className="w-full bg-white border border-[var(--border-soft)] rounded-xl py-3 px-4 focus:outline-none focus:border-[var(--accent-purple)] transition-colors font-sans text-sm"
+                    className={`w-full bg-white border rounded-xl py-3 px-4 focus:outline-none focus:border-[var(--accent-purple)] transition-colors font-sans text-sm
+                      ${getFieldError('lastName') ? 'border-red-400 bg-red-50/20' : 'border-[var(--border-soft)]'}
+                    `}
                   />
                   {getFieldError('lastName') && (
                     <span className="text-red-500 text-xs font-mono">{getFieldError('lastName')}</span>
@@ -244,7 +323,9 @@ export default function CheckoutPage() {
                       clearError('email');
                     }}
                     placeholder="ada.eze@example.com"
-                    className="w-full bg-white border border-[var(--border-soft)] rounded-xl py-3 px-4 focus:outline-none focus:border-[var(--accent-purple)] transition-colors font-sans text-sm"
+                    className={`w-full bg-white border rounded-xl py-3 px-4 focus:outline-none focus:border-[var(--accent-purple)] transition-colors font-sans text-sm
+                      ${getFieldError('email') ? 'border-red-400 bg-red-50/20' : 'border-[var(--border-soft)]'}
+                    `}
                   />
                   {getFieldError('email') && (
                     <span className="text-red-500 text-xs font-mono">{getFieldError('email')}</span>
@@ -261,7 +342,9 @@ export default function CheckoutPage() {
                       clearError('phone');
                     }}
                     placeholder="08167009545"
-                    className="w-full bg-white border border-[var(--border-soft)] rounded-xl py-3 px-4 focus:outline-none focus:border-[var(--accent-purple)] transition-colors font-sans text-sm"
+                    className={`w-full bg-white border rounded-xl py-3 px-4 focus:outline-none focus:border-[var(--accent-purple)] transition-colors font-sans text-sm
+                      ${getFieldError('phone') ? 'border-red-400 bg-red-50/20' : 'border-[var(--border-soft)]'}
+                    `}
                   />
                   {getFieldError('phone') && (
                     <span className="text-red-500 text-xs font-mono">{getFieldError('phone')}</span>
@@ -277,7 +360,10 @@ export default function CheckoutPage() {
               <div className="grid grid-cols-2 gap-4">
                 <button
                   type="button"
-                  onClick={() => setDeliveryOption('pickup')}
+                  onClick={() => {
+                    setDeliveryOption('pickup');
+                    clearError('deliveryAddress');
+                  }}
                   className={`p-4 rounded-xl border text-left flex items-center gap-3 transition-all cursor-pointer
                     ${deliveryOption === 'pickup'
                       ? 'border-[var(--accent-purple)] bg-[var(--surface-soft)]/40'
@@ -310,22 +396,95 @@ export default function CheckoutPage() {
                 </button>
               </div>
 
-              {deliveryOption === 'delivery' && (
-                <div className="flex flex-col gap-1 border-t border-[var(--border-soft)] pt-6">
-                  <label className="font-mono text-xs uppercase tracking-wider text-[var(--text-muted)]">Delivery Address</label>
-                  <textarea
-                    value={deliveryAddress}
-                    onChange={(e) => {
-                      setDeliveryAddress(e.target.value);
-                      clearError('deliveryAddress');
-                    }}
-                    placeholder="Enter complete shipping address (Street, City, State)"
-                    rows={3}
-                    className="w-full bg-white border border-[var(--border-soft)] rounded-xl py-3 px-4 focus:outline-none focus:border-[var(--accent-purple)] transition-colors font-sans text-sm resize-none"
-                  />
-                  {getFieldError('deliveryAddress') && (
-                    <span className="text-red-500 text-xs font-mono">{getFieldError('deliveryAddress')}</span>
-                  )}
+              {deliveryOption === 'delivery' ? (
+                <div className="flex flex-col gap-4 border-t border-[var(--border-soft)] pt-6">
+                  <div className="flex flex-col gap-1">
+                    <label className="font-mono text-xs uppercase tracking-wider text-[var(--text-muted)] font-semibold">
+                      Street Address / House No. <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={streetAddress}
+                      onChange={(e) => {
+                        setStreetAddress(e.target.value);
+                        clearError('streetAddress');
+                      }}
+                      placeholder="E.g. Plot 14, Aroma Junction, Arthur Eze Avenue"
+                      className={`w-full bg-white border rounded-xl py-3 px-4 focus:outline-none focus:border-[var(--accent-purple)] transition-colors font-sans text-sm
+                        ${getFieldError('streetAddress') ? 'border-red-400 bg-red-50/20' : 'border-[var(--border-soft)]'}
+                      `}
+                    />
+                    {getFieldError('streetAddress') && (
+                      <span className="text-red-500 text-xs font-mono">{getFieldError('streetAddress')}</span>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-1">
+                      <label className="font-mono text-xs uppercase tracking-wider text-[var(--text-muted)] font-semibold">
+                        City / Town <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={city}
+                        onChange={(e) => {
+                          setCity(e.target.value);
+                          clearError('city');
+                        }}
+                        placeholder="Awka"
+                        className={`w-full bg-white border rounded-xl py-3 px-4 focus:outline-none focus:border-[var(--accent-purple)] transition-colors font-sans text-sm
+                          ${getFieldError('city') ? 'border-red-400 bg-red-50/20' : 'border-[var(--border-soft)]'}
+                        `}
+                      />
+                      {getFieldError('city') && (
+                        <span className="text-red-500 text-xs font-mono">{getFieldError('city')}</span>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label className="font-mono text-xs uppercase tracking-wider text-[var(--text-muted)] font-semibold">
+                        State <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={state}
+                        onChange={(e) => {
+                          setState(e.target.value);
+                          clearError('state');
+                        }}
+                        className={`w-full bg-white border rounded-xl py-3 px-4 focus:outline-none focus:border-[var(--accent-purple)] transition-colors font-sans text-sm cursor-pointer
+                          ${getFieldError('state') ? 'border-red-400 bg-red-50/20' : 'border-[var(--border-soft)]'}
+                        `}
+                      >
+                        {NIGERIAN_STATES.map((st) => (
+                          <option key={st} value={st}>{st}</option>
+                        ))}
+                      </select>
+                      {getFieldError('state') && (
+                        <span className="text-red-500 text-xs font-mono">{getFieldError('state')}</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <label className="font-mono text-xs uppercase tracking-wider text-[var(--text-muted)]">
+                      Nearest Landmark / Delivery Directions (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={landmark}
+                      onChange={(e) => setLandmark(e.target.value)}
+                      placeholder="E.g. Near Regina Caeli Hospital / Behind Zenith Bank"
+                      className="w-full bg-white border border-[var(--border-soft)] rounded-xl py-3 px-4 focus:outline-none focus:border-[var(--accent-purple)] transition-colors font-sans text-sm"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="border-t border-[var(--border-soft)] pt-5 flex items-start gap-3 bg-[var(--surface-soft)]/50 p-4 rounded-xl">
+                  <MapPin className="text-[var(--accent-purple)] shrink-0 mt-0.5" size={18} />
+                  <div className="text-xs text-[var(--text-muted)] leading-relaxed">
+                    <p className="font-serif font-bold text-sm text-[var(--foreground)] mb-0.5">Artsy by Oma Studio Pickup</p>
+                    <p>Awka, Anambra State, Nigeria. We will prepare your artwork with a certificate of authenticity and email you pickup details right after payment.</p>
+                  </div>
                 </div>
               )}
 
@@ -384,6 +543,16 @@ export default function CheckoutPage() {
                 ₦{grandTotal.toLocaleString()}
               </span>
             </div>
+
+            {submitError && (
+              <div className="p-3.5 rounded-xl bg-red-50 border border-red-300 text-red-700 text-xs flex items-start gap-2.5 shadow-sm">
+                <AlertCircle size={18} className="text-red-600 shrink-0 mt-0.5" />
+                <div className="flex-grow">
+                  <span className="font-mono font-bold block text-red-900 mb-0.5">Action Required</span>
+                  <span className="leading-snug">{submitError}</span>
+                </div>
+              </div>
+            )}
 
             <button
               type="submit"

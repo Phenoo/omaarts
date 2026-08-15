@@ -6,8 +6,7 @@ import { createArtwork, getArtworkCategories } from '@/lib/firebase/services/art
 import { useAdminAuth } from '@/lib/context/AdminAuthContext';
 import { Category, ArtworkStatus } from '@/lib/types';
 import { validateArtworkInput, ValidationError } from '@/lib/validation';
-import { storage } from '@/lib/firebase/config';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { imageStoragePath, storageErrorMessage, uploadImage, validateImageFile } from '@/lib/firebase/storage';
 import { ArrowLeft, Upload, Image as ImageIcon, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -69,39 +68,27 @@ export default function AddArtworkPage() {
 
     const currentSlug = slug || title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'artwork-temp';
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      
-      if (file.size > 5 * 1024 * 1024) {
-        setUploadError(`File ${file.name} is too large. Max size is 5MB.`);
+    if (!user) {
+      setUploadError('Your admin session is still loading. Please try again in a moment.');
+      return;
+    }
+
+    for (const file of Array.from(files)) {
+      const fileError = validateImageFile(file);
+      if (fileError) {
+        setUploadError(`${file.name}: ${fileError}`);
         continue;
       }
 
-      if (!file.type.startsWith('image/')) {
-        setUploadError(`File ${file.name} is not an image.`);
-        continue;
+      try {
+        const downloadUrl = await uploadImage(file, imageStoragePath('artworks', currentSlug, file), setUploadProgress);
+        setImages((prev) => [...prev, downloadUrl]);
+      } catch (error) {
+        console.error('File upload error:', error);
+        setUploadError(storageErrorMessage(error));
+      } finally {
+        setUploadProgress(null);
       }
-
-      const fileRef = ref(storage, `artworks/${currentSlug}/${Date.now()}-${file.name}`);
-      const uploadTask = uploadBytesResumable(fileRef, file);
-
-      uploadTask.on(
-        'state_changed',
-        (snapshot) => {
-          const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-          setUploadProgress(progress);
-        },
-        (error) => {
-          console.error('File upload error:', error);
-          setUploadError('Failed to upload image to Storage.');
-          setUploadProgress(null);
-        },
-        async () => {
-          const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
-          setImages((prev) => [...prev, downloadUrl]);
-          setUploadProgress(null);
-        }
-      );
     }
   };
 
@@ -123,7 +110,7 @@ export default function AddArtworkPage() {
       title,
       slug,
       description,
-      story: story.trim() || undefined,
+      story: story.trim() || '',
       artist,
       year,
       medium,

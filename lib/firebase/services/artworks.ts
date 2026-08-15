@@ -6,11 +6,10 @@ import {
   getDoc,
   query,
   where,
-  orderBy,
-  updateDoc,
   writeBatch
 } from 'firebase/firestore';
 import { Artwork, Category, InventoryMovement, AuditLog } from '../../types';
+import { removeUndefinedFields } from '../sanitize';
 
 export async function getArtworks(options?: {
   categoryId?: string;
@@ -20,7 +19,7 @@ export async function getArtworks(options?: {
 }): Promise<Artwork[]> {
   try {
     const colRef = collection(db, 'artworks');
-    let queries = [];
+    const queries = [];
 
     // Filter active/non-archived artworks
     queries.push(where('status', '!=', 'ARCHIVED'));
@@ -38,10 +37,10 @@ export async function getArtworks(options?: {
     }
 
     // Standard query compilation
-    let q = query(colRef, ...queries);
+    const q = query(colRef, ...queries);
     const snapshot = await getDocs(q);
     
-    let artworks = snapshot.docs.map((doc) => ({
+    const artworks = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data()
     })) as Artwork[];
@@ -97,11 +96,12 @@ export async function createArtwork(
       throw new Error(`Artwork with slug '${data.slug}' already exists.`);
     }
 
-    const artworkDoc = {
+    const artworkDoc = removeUndefinedFields({
       ...data,
+      story: data.story?.trim() || '',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
-    };
+    });
 
     const batch = writeBatch(db);
     batch.set(docRef, artworkDoc);
@@ -117,7 +117,7 @@ export async function createArtwork(
         reason: 'SEEDED',
         timestamp: new Date().toISOString()
       };
-      batch.set(movementRef, movementDoc);
+      batch.set(movementRef, removeUndefinedFields(movementDoc));
     }
 
     // Write audit log
@@ -131,7 +131,7 @@ export async function createArtwork(
       afterInfo: artworkDoc as any,
       timestamp: new Date().toISOString()
     };
-    batch.set(auditRef, auditLogDoc);
+    batch.set(auditRef, removeUndefinedFields(auditLogDoc));
 
     await batch.commit();
     return data.slug;
@@ -173,8 +173,14 @@ export async function updateArtwork(
         reason: notes || 'Admin correction',
         timestamp: new Date().toISOString()
       };
-      batch.set(movementRef, movementDoc);
+      batch.set(movementRef, removeUndefinedFields(movementDoc));
     }
+
+    const cleanUpdates = removeUndefinedFields({
+      ...updatedData,
+      story: updatedData.story !== undefined ? (updatedData.story.trim() || '') : undefined,
+      updatedAt: new Date().toISOString()
+    });
 
     // Audit logs
     const auditRef = doc(collection(db, 'auditLogs'));
@@ -185,16 +191,13 @@ export async function updateArtwork(
       resourceType: 'artwork',
       resourceId: id,
       beforeInfo: beforeData as any,
-      afterInfo: { ...beforeData, ...updatedData } as any,
+      afterInfo: { ...beforeData, ...cleanUpdates } as any,
       timestamp: new Date().toISOString()
     };
-    batch.set(auditRef, auditLogDoc);
+    batch.set(auditRef, removeUndefinedFields(auditLogDoc));
 
     // Update operation
-    batch.update(docRef, {
-      ...updatedData,
-      updatedAt: new Date().toISOString()
-    });
+    batch.update(docRef, cleanUpdates);
 
     await batch.commit();
   } catch (error) {

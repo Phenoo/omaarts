@@ -9,6 +9,7 @@ import { calculateActivityPrice } from '@/lib/utils/pricing';
 import { validateEmail, validatePhone } from '@/lib/validation';
 import { Activity, ActivityVariant, Artwork, Booking, Order } from '@/lib/types';
 import { absoluteUrl } from '@/lib/site';
+import { removeUndefinedFields } from '@/lib/firebase/sanitize';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -211,8 +212,8 @@ export async function POST(request: Request) {
           createdAt: now,
           updatedAt: now,
         };
-        transaction.create(bookingRef, booking);
-        transaction.create(checkoutRef, { id: checkoutId, type, resourceId: bookingRef.id, reference, status: enquiryOnly ? 'ENQUIRY_INITIALIZING' : 'INITIALIZING', createdAt: now, updatedAt: now });
+        transaction.create(bookingRef, removeUndefinedFields(booking));
+        transaction.create(checkoutRef, removeUndefinedFields({ id: checkoutId, type, resourceId: bookingRef.id, reference, status: enquiryOnly ? 'ENQUIRY_INITIALIZING' : 'INITIALIZING', createdAt: now, updatedAt: now }));
         return { created: true, booking, bookingId: bookingRef.id, reference, enquiryOnly };
       });
 
@@ -283,12 +284,13 @@ export async function POST(request: Request) {
           const snapshot = artworkSnapshots[index];
           const item = items[index];
           if (!snapshot.exists) throw new CheckoutError(`Artwork ${item.artworkId} was not found.`, 404);
-          const artwork = snapshot.data() as Artwork;
+          const artworkData = snapshot.data() || {};
+          const artwork = { id: snapshot.id, ...artworkData } as Artwork;
           const reservationActive = artwork.reservationId && artwork.reservationId !== orderRef.id && typeof artwork.reservationExpiresAt === 'string' && Date.parse(artwork.reservationExpiresAt) > now.getTime();
           const expiredReservation = artwork.status === 'RESERVED' && !reservationActive;
-          if ((!expiredReservation && artwork.status !== 'AVAILABLE') || (!expiredReservation && !artwork.availableForSale) || artwork.inventoryQty < 1 || reservationActive) throw new CheckoutError(`Artwork "${artwork.title}" is no longer available.`, 409);
-          if (!Number.isSafeInteger(artwork.price) || artwork.price < 0) throw new CheckoutError(`Artwork "${artwork.title}" has an invalid price.`, 500);
-          verifiedItems.push({ artworkId: artwork.id, title: artwork.title, price: artwork.price, quantity: 1 });
+          if ((!expiredReservation && artwork.status !== 'AVAILABLE') || (!expiredReservation && !artwork.availableForSale) || artwork.inventoryQty < 1 || reservationActive) throw new CheckoutError(`Artwork "${artwork.title || 'Selected Artwork'}" is no longer available.`, 409);
+          if (!Number.isSafeInteger(artwork.price) || artwork.price < 0) throw new CheckoutError(`Artwork "${artwork.title || 'Selected Artwork'}" has an invalid price.`, 500);
+          verifiedItems.push({ artworkId: snapshot.id || item.artworkId, title: artwork.title || 'Original Artwork', price: artwork.price, quantity: 1 });
           subtotal += artwork.price;
           transaction.update(artworkRefs[index], { status: 'RESERVED', availableForSale: false, reservationId: orderRef.id, reservationExpiresAt, updatedAt: now.toISOString() });
         }
@@ -316,8 +318,8 @@ export async function POST(request: Request) {
           createdAt: now.toISOString(),
           updatedAt: now.toISOString(),
         };
-        transaction.create(orderRef, order);
-        transaction.create(checkoutRef, { id: checkoutId, type: 'order', resourceId: orderRef.id, reference, status: 'INITIALIZING', createdAt: now.toISOString(), updatedAt: now.toISOString() });
+        transaction.create(orderRef, removeUndefinedFields(order));
+        transaction.create(checkoutRef, removeUndefinedFields({ id: checkoutId, type: 'order', resourceId: orderRef.id, reference, status: 'INITIALIZING', createdAt: now.toISOString(), updatedAt: now.toISOString() }));
         return order;
       });
     } catch (error) {

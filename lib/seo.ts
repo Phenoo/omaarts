@@ -23,6 +23,10 @@ export function createPageMetadata({
   return {
     title,
     description,
+    keywords: ['Artsy by Oma', 'Oma Achebe', 'contemporary art Nigeria', 'art studio Awka', 'paint and sip Awka', 'art commissions Nigeria'],
+    authors: [{ name: SITE.artist }],
+    creator: SITE.artist,
+    publisher: SITE.name,
     alternates: { canonical: pathname },
     robots: noIndex ? { index: false, follow: false } : { index: true, follow: true },
     openGraph: {

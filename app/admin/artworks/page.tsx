@@ -3,11 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import { getArtworks, createArtwork, updateArtwork, archiveArtwork, getArtworkCategories } from '@/lib/firebase/services/artworks';
 import { useAdminAuth } from '@/lib/context/AdminAuthContext';
-import { Artwork, Category, ArtworkStatus } from '@/lib/types';
-import { validateArtworkInput, ValidationError } from '@/lib/validation';
-import { storage } from '@/lib/firebase/config';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { Palette, Plus, Edit, Archive, CheckCircle, XCircle, RefreshCw, Upload, Image as ImageIcon, Trash2 } from 'lucide-react';
+import { Artwork, Category } from '@/lib/types';
+import { Palette, Plus, Edit, Archive, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminArtworksPage() {

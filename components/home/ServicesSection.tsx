@@ -7,7 +7,7 @@ import Image from 'next/image';
 const SERVICES = [
     { title: 'Fine Art Commissions', description: 'Custom large-scale paintings tailored to residential or commercial spaces.', image: '/images/archive-1.png' },
     { title: 'Editorial Illustration', description: 'Visual storytelling for publications, brands, and digital media.', image: '/images/archive-2.png' },
-    { title: 'Mural Installation', description: 'Immersive, site-specific art installations for public and private venues.', image: '/images/artist-studio.png' },
+    { title: 'Mural Installation', description: 'Immersive, site-specific art installations for public and private venues.', image: '/images/studio/IMG_0890.png' },
 ];
 
 export default function ServicesSection() {

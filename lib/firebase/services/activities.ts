@@ -12,6 +12,8 @@ import {
   writeBatch
 } from 'firebase/firestore';
 import { Activity, ActivityPriceHistory, AuditLog } from '../../types';
+import { withActivityImages } from '../../activityImages';
+import { removeUndefinedFields } from '../sanitize';
 
 export async function getActivities(onlyActive = true): Promise<Activity[]> {
   try {
@@ -25,27 +27,12 @@ export async function getActivities(onlyActive = true): Promise<Activity[]> {
     }
     
     const snapshot = await getDocs(q);
-    return snapshot.docs.map((doc) => ({
+    return snapshot.docs.map((doc) => withActivityImages({
       id: doc.id,
       ...doc.data()
-    })) as Activity[];
+    } as Activity));
   } catch (error) {
     console.error('Error fetching activities:', error);
-    throw error;
-  }
-}
-
-export async function getActivity(id: string): Promise<Activity | null> {
-  try {
-    const docRef = doc(db, 'activities', id);
-    const snap = await getDoc(docRef);
-    if (!snap.exists()) return null;
-    return {
-      id: snap.id,
-      ...snap.data()
-    } as Activity;
-  } catch (error) {
-    console.error('Error fetching activity:', error);
     throw error;
   }
 }
@@ -53,23 +40,40 @@ export async function getActivity(id: string): Promise<Activity | null> {
 export async function getActivityBySlug(slug: string): Promise<Activity | null> {
   try {
     const colRef = collection(db, 'activities');
-    const q = query(colRef, where('slug', '==', slug), where('active', '==', true));
+    const q = query(colRef, where('slug', '==', slug));
     const snapshot = await getDocs(q);
     
     if (snapshot.empty) {
       return null;
     }
     
-    const firstDoc = snapshot.docs[0];
-    return {
-      id: firstDoc.id,
-      ...firstDoc.data()
-    } as Activity;
+    const docSnap = snapshot.docs[0];
+    return withActivityImages({
+      id: docSnap.id,
+      ...docSnap.data()
+    } as Activity);
   } catch (error) {
-    console.error(`Error fetching activity with slug ${slug}:`, error);
+    console.error(`Error fetching activity ${slug}:`, error);
     throw error;
   }
 }
+
+export async function getActivityById(id: string): Promise<Activity | null> {
+  try {
+    const docRef = doc(db, 'activities', id);
+    const snap = await getDoc(docRef);
+    if (!snap.exists()) return null;
+    return withActivityImages({
+      id: snap.id,
+      ...snap.data()
+    } as Activity);
+  } catch (error) {
+    console.error(`Error fetching activity ID ${id}:`, error);
+    throw error;
+  }
+}
+
+export const getActivity = getActivityById;
 
 export async function updateActivity(
   id: string,
@@ -104,8 +108,13 @@ export async function updateActivity(
         reason: changeReason || 'Admin updated price',
         timestamp: new Date().toISOString(),
       };
-      batch.set(priceHistoryRef, priceHistoryDoc);
+      batch.set(priceHistoryRef, removeUndefinedFields(priceHistoryDoc));
     }
+
+    const cleanUpdates = removeUndefinedFields({
+      ...updatedData,
+      updatedAt: new Date().toISOString(),
+    });
 
     // 2. Log general action in Audit Logs
     const auditRef = doc(collection(db, 'auditLogs'));
@@ -116,16 +125,13 @@ export async function updateActivity(
       resourceType: 'activity',
       resourceId: id,
       beforeInfo: beforeData as any,
-      afterInfo: { ...beforeData, ...updatedData } as any,
+      afterInfo: { ...beforeData, ...cleanUpdates } as any,
       timestamp: new Date().toISOString(),
     };
-    batch.set(auditRef, auditLogDoc);
+    batch.set(auditRef, removeUndefinedFields(auditLogDoc));
 
     // 3. Perform update doc
-    batch.update(docRef, {
-      ...updatedData,
-      updatedAt: new Date().toISOString(),
-    });
+    batch.update(docRef, cleanUpdates);
 
     await batch.commit();
   } catch (error) {
@@ -141,11 +147,11 @@ export async function createActivity(
   try {
     const colRef = collection(db, 'activities');
     
-    const activityDoc = {
+    const activityDoc = removeUndefinedFields({
       ...data,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
-    };
+    });
     
     // Create doc with slug as document ID to ensure clean structure
     const docRef = doc(colRef, data.slug);
@@ -170,7 +176,7 @@ export async function createActivity(
       afterInfo: activityDoc as any,
       timestamp: new Date().toISOString(),
     };
-    batch.set(auditRef, auditLogDoc);
+    batch.set(auditRef, removeUndefinedFields(auditLogDoc));
 
     await batch.commit();
     return data.slug;

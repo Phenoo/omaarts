@@ -4,9 +4,10 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { getActivity, updateActivity } from '@/lib/firebase/services/activities';
 import { useAdminAuth } from '@/lib/context/AdminAuthContext';
+import { imageStoragePath, storageErrorMessage, uploadImage, validateImageFile } from '@/lib/firebase/storage';
 import { ActivityVariant, PricingModel, Activity } from '@/lib/types';
 import { validateActivityInput, ValidationError } from '@/lib/validation';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Upload, Image as ImageIcon, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function EditActivityPage() {
@@ -33,6 +34,11 @@ export default function EditActivityPage() {
   const [active, setActive] = useState(true);
   const [featured, setFeatured] = useState(false);
   const [bookingEnabled, setBookingEnabled] = useState(true);
+
+  // Images state
+  const [images, setImages] = useState<string[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [uploadError, setUploadError] = useState('');
   
   // Custom arrays
   const [complimentaryItems, setComplimentaryItems] = useState<string[]>([]);
@@ -71,6 +77,7 @@ export default function EditActivityPage() {
           setBookingEnabled(act.bookingEnabled);
           setComplimentaryItems(act.complimentaryItems || []);
           setVariants(act.variants || []);
+          setImages(Array.isArray(act.images) && act.images.length > 0 ? act.images : []);
         }
       } catch (err) {
         console.error(err);
@@ -80,6 +87,41 @@ export default function EditActivityPage() {
     };
     fetchActivity();
   }, [id]);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUploadError('');
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const currentSlug = slug || id || 'activity-temp';
+
+    if (!user) {
+      setUploadError('Your admin session is still loading. Please try again in a moment.');
+      return;
+    }
+
+    for (const file of Array.from(files)) {
+      const fileError = validateImageFile(file);
+      if (fileError) {
+        setUploadError(`${file.name}: ${fileError}`);
+        continue;
+      }
+
+      try {
+        const downloadUrl = await uploadImage(file, imageStoragePath('activities', currentSlug, file), setUploadProgress);
+        setImages((prev) => [...prev, downloadUrl]);
+      } catch (error) {
+        console.error('File upload error:', error);
+        setUploadError(storageErrorMessage(error));
+      } finally {
+        setUploadProgress(null);
+      }
+    }
+  };
+
+  const removeImage = (idx: number) => {
+    setImages(images.filter((_, i) => i !== idx));
+  };
 
   // Add Item to complimentary list
   const addComplimentaryItem = () => {
@@ -122,6 +164,8 @@ export default function EditActivityPage() {
     setValidationErrors([]);
     setIsSubmitting(true);
 
+    const finalImages = images.length > 0 ? images : (editingActivity?.images && editingActivity.images.length > 0 ? editingActivity.images : ['/images/studio/IMG_0890.png']);
+
     const payload = {
       name,
       slug,
@@ -140,7 +184,7 @@ export default function EditActivityPage() {
       sortOrder,
       complimentaryText,
       currency: 'NGN' as const,
-      images: editingActivity ? editingActivity.images : ['/images/artist-studio.png']
+      images: finalImages
     };
 
     const errors = validateActivityInput(payload);
@@ -203,6 +247,48 @@ export default function EditActivityPage() {
               {submitError}
             </div>
           )}
+
+          {/* Image Upload Block */}
+          <div className="border border-[var(--border-soft)] rounded-2xl p-5 flex flex-col gap-4 bg-gray-50/50">
+            <h4 className="font-serif text-lg text-[var(--accent-purple)] font-semibold border-b border-[var(--border-soft)] pb-3 flex items-center gap-2">
+              <ImageIcon size={20} />
+              Activity Images
+            </h4>
+
+            {images.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {images.map((img, idx) => (
+                  <div key={idx} className="relative aspect-square border border-[var(--border-soft)] rounded-xl overflow-hidden group shadow-sm bg-white">
+                    <img src={img} alt="Preview" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(idx)}
+                      className="absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                    >
+                      <Trash2 size={24} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {uploadProgress !== null && (
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="bg-[var(--accent-purple)] h-2 rounded-full transition-all duration-300" style={{ width: `${uploadProgress}%` }} />
+                <span className="text-[10px] font-mono text-[var(--text-muted)] mt-1 block">Uploading image: {uploadProgress}%</span>
+              </div>
+            )}
+
+            {uploadError && <p className="text-red-500 text-xs font-mono">{uploadError}</p>}
+
+            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-[var(--border-soft)] rounded-xl cursor-pointer hover:border-[var(--accent-purple)] transition-colors bg-white">
+              <div className="flex flex-col items-center justify-center pt-5 pb-6 text-gray-400 font-mono text-xs uppercase tracking-wider gap-2">
+                <Upload size={24} className="text-gray-400" />
+                <span>Upload Activity Images (Max 10MB)</span>
+              </div>
+              <input type="file" multiple className="hidden" accept="image/*" onChange={handleFileUpload} />
+            </label>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="flex flex-col gap-1.5">

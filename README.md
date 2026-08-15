@@ -26,5 +26,5 @@ The canonical public routes are `/`, `/art`, `/experiences`, `/private-events`, 
 - Configure Firebase client and Admin credentials before enabling enquiry persistence, accounts, or checkout.
 - Configure Paystack server/public keys only if checkout is enabled, and verify webhook signing in the deployed environment.
 - Configure Resend or SMTP from `support@artsybyoma.com`; publish SPF, DKIM, and DMARC for the sending domain.
-- Replace the marked policy placeholders in Privacy, Terms, Shipping, Returns, and Commission Terms with owner/legal-approved copy.
+- Keep the published Privacy, Terms, Shipping, Returns, and Commission Terms pages accurate as the studio’s services, payment providers, and delivery practices evolve.
 - Configure error monitoring, analytics conversion events, uptime checks, backups, and recovery runbooks in the deployment platform.

@@ -5,7 +5,9 @@ import { useRouter, usePathname } from 'next/navigation';
 import { auth, db } from '../firebase/config';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
-import { UserDoc, UserRole } from '../types';
+import { UserDoc } from '../types';
+import { isAdminRole, isStaffRole } from '@/lib/auth/roles';
+import { firebaseErrorDetails } from '@/lib/firebase/errorDetails';
 
 interface AdminAuthContextType {
   user: User | null;
@@ -28,6 +30,11 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setLoading(true);
+      console.info('[AdminAuth] Auth state changed', {
+        uid: currentUser?.uid ?? null,
+        route: pathname,
+        projectId: auth.app.options.projectId,
+      });
       if (currentUser) {
         try {
           // Fetch user profile from Firestore to check role
@@ -38,12 +45,22 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
             const profile = snap.data() as UserDoc;
             const role = profile.role;
 
-            if (role === 'admin' || role === 'super_admin' || role === 'staff') {
+            console.info('[AdminAuth] Profile resolved', {
+              uid: currentUser.uid,
+              role,
+              isStaff: isStaffRole(role),
+              isAdmin: isAdminRole(role),
+            });
+
+            if (isStaffRole(role)) {
               setUser(currentUser);
               setAdminProfile(profile);
             } else {
               // Not authorized: kick out
-              console.warn(`User ${currentUser.email} has unauthorized role: ${role}`);
+              console.warn('[AdminAuth] User is not authorized for the admin console', {
+                uid: currentUser.uid,
+                role,
+              });
               await signOut(auth);
               setUser(null);
               setAdminProfile(null);
@@ -53,7 +70,10 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
             }
           } else {
             // Document doesn't exist: kick out
-            console.warn(`No user document found for UID ${currentUser.uid}`);
+            console.warn('[AdminAuth] No user profile document found', {
+              uid: currentUser.uid,
+              path: `users/${currentUser.uid}`,
+            });
             await signOut(auth);
             setUser(null);
             setAdminProfile(null);
@@ -62,7 +82,11 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
             }
           }
         } catch (e) {
-          console.error('Error fetching admin user profile:', e);
+          console.error('[AdminAuth] Failed to resolve admin profile', {
+            uid: currentUser.uid,
+            path: `users/${currentUser.uid}`,
+            ...firebaseErrorDetails(e),
+          });
           await signOut(auth);
           setUser(null);
           setAdminProfile(null);
@@ -91,8 +115,8 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const role = adminProfile?.role;
-  const isStaff = role === 'staff' || role === 'admin' || role === 'super_admin';
-  const isAdmin = role === 'admin' || role === 'super_admin';
+  const isStaff = isStaffRole(role);
+  const isAdmin = isAdminRole(role);
 
   return (
     <AdminAuthContext.Provider

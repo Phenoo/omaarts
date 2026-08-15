@@ -6,7 +6,8 @@ import JsonLd from '@/components/JsonLd';
 import { getPublicArtworks } from '@/lib/public-data';
 import { absoluteUrl, SITE } from '@/lib/site';
 
-export const revalidate = 300;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export const metadata: Metadata = {
   title: 'Art | Original Contemporary Works by Oma Achebe',

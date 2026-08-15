@@ -145,8 +145,8 @@ export default function EventsPage() {
             {/* Gallery Image snippet */}
             <div className="relative aspect-video rounded-2xl overflow-hidden border border-[var(--border-soft)] shadow-sm bg-[var(--surface-soft)]">
               <Image
-                src="/images/events/IMG_6954.JPG"
-                alt="Paint Party Setup"
+                src="/images/studio/IMG_0887.png"
+                alt="Paint-and-sip setup inside the Artsy by Oma studio"
                 fill
                 className="object-cover"
               />

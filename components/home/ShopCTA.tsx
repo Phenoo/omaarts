@@ -25,7 +25,6 @@ export default function ShopCTA() {
 
         {/* IMAGE */}
         <div className="relative aspect-square w-full order-1 md:order-2 group overflow-hidden border border-[var(--border-soft)]">
-             {/* Placeholder for shop image - using a colored div or existing asset */}
              <div className="absolute inset-0 bg-[var(--surface-strong)]" />
               <div className="absolute inset-0 flex items-center justify-center">
                 <span className="font-mono text-white/35 text-9xl animate-pulse">SHOP</span>

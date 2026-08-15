@@ -1,6 +1,7 @@
 import { db } from '../config';
 import { collection, doc, writeBatch, getDoc } from 'firebase/firestore';
 import { Activity } from '../../types';
+import { ACTIVITY_IMAGES } from '../../activityImages';
 
 export const INITIAL_ACTIVITIES: Omit<Activity, 'createdAt' | 'updatedAt'>[] = [
   {
@@ -30,7 +31,7 @@ export const INITIAL_ACTIVITIES: Omit<Activity, 'createdAt' | 'updatedAt'>[] = [
     slug: 'tote-bag-painting',
     description: 'Express your style on a wearable canvas. Design and paint your own custom tote bag to take home.',
     shortDescription: 'Customize and paint your own canvas tote bag.',
-    images: ['/images/events/IMG_1269.JPG'],
+    images: ACTIVITY_IMAGES['tote-bag-painting'],
     basePrice: 12000,
     currency: 'NGN',
     pricingModel: 'PER_PERSON',
@@ -72,7 +73,7 @@ export const INITIAL_ACTIVITIES: Omit<Activity, 'createdAt' | 'updatedAt'>[] = [
     slug: 'cap-painting',
     description: 'Paint custom designs on a stylish baseball cap. The ultimate wearable art workshop.',
     shortDescription: 'Custom paint your own baseball cap.',
-    images: ['/images/events/IMG_1284.JPG'],
+    images: ACTIVITY_IMAGES['cap-painting'],
     basePrice: 10000,
     currency: 'NGN',
     pricingModel: 'PER_PERSON',
@@ -93,7 +94,7 @@ export const INITIAL_ACTIVITIES: Omit<Activity, 'createdAt' | 'updatedAt'>[] = [
     slug: 'hand-moulding',
     description: 'Create a beautiful 3D sculpture of your hands. Keep a memory frozen in time.',
     shortDescription: '3D lifelike hand sculpture casting experience.',
-    images: ['/images/events/IMG_6954.JPG'],
+    images: ACTIVITY_IMAGES['hand-moulding'],
     basePrice: 20000, // base price represents single
     currency: 'NGN',
     pricingModel: 'VARIANT',
@@ -159,7 +160,7 @@ export const INITIAL_ACTIVITIES: Omit<Activity, 'createdAt' | 'updatedAt'>[] = [
     slug: 'mug-painting',
     description: 'Hand paint a ceramic coffee mug. Bring your morning coffee to life with personalized art.',
     shortDescription: 'Design and paint your own ceramic coffee mug.',
-    images: ['/images/events/IMG_1293.JPG'],
+    images: ACTIVITY_IMAGES['mug-painting'],
     basePrice: 10000,
     currency: 'NGN',
     pricingModel: 'PER_PERSON',
@@ -180,7 +181,7 @@ export const INITIAL_ACTIVITIES: Omit<Activity, 'createdAt' | 'updatedAt'>[] = [
     slug: 'flower-pot-painting',
     description: 'Decorate clay flower pots or ceramic vases. Perfect for bringing some art to your home plants.',
     shortDescription: 'Paint custom designs on clay flower pots or vases.',
-    images: ['/images/events/IMG_1294.JPG'],
+    images: ACTIVITY_IMAGES['flower-pot-painting'],
     basePrice: 15000,
     currency: 'NGN',
     pricingModel: 'PER_PERSON',
@@ -201,7 +202,7 @@ export const INITIAL_ACTIVITIES: Omit<Activity, 'createdAt' | 'updatedAt'>[] = [
     slug: 'scented-candle-making',
     description: 'Learn the craft of soy candle pouring. Mix your own custom scents, colors, and take home a beautiful jar candle.',
     shortDescription: 'Craft and pour your own custom scented soy candles.',
-    images: ['/images/events/IMG_1297.JPG'],
+    images: ACTIVITY_IMAGES['scented-candle-making'],
     basePrice: 15000,
     currency: 'NGN',
     pricingModel: 'PER_PERSON',
@@ -334,7 +335,7 @@ export const INITIAL_ACTIVITIES: Omit<Activity, 'createdAt' | 'updatedAt'>[] = [
     slug: 'board-card-games',
     description: 'Access our full collection of board, tabletop, and card games. Enjoy with drinks and friends in a cozy atmosphere.',
     shortDescription: 'Tabletop, card and board games pass.',
-    images: ['/images/events/IMG_1376.JPG'],
+    images: ACTIVITY_IMAGES['board-card-games'],
     basePrice: 0,
     currency: 'NGN',
     pricingModel: 'CUSTOM_QUOTE', // Booking/enquiry based unless price configured

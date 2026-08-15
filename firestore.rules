@@ -8,12 +8,12 @@ service cloud.firestore {
     
     function isAdmin() {
       return request.auth != null && 
-        (getUserData().role == 'admin' || getUserData().role == 'super_admin');
+        (getUserData().role == 'admin' || getUserData().role == 'super_admin' || getUserData().role == 'super_Admin');
     }
     
     function isStaff() {
       return request.auth != null && 
-        (getUserData().role == 'admin' || getUserData().role == 'super_admin' || getUserData().role == 'staff');
+        (getUserData().role == 'admin' || getUserData().role == 'super_admin' || getUserData().role == 'super_Admin' || getUserData().role == 'staff');
     }
 
     function isOwner(userId) {

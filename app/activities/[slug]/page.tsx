@@ -86,25 +86,31 @@ export default function ActivityDetailPage({ params }: PageProps) {
           All Experiences
         </Link>
 
+        <header className="mb-8 max-w-3xl">
+          <p className="font-mono text-xs uppercase tracking-[0.18em] text-[var(--accent-orange)] font-semibold">{activity.category} · {activity.duration}</p>
+          <h1 className="mt-3 font-serif text-5xl md:text-7xl tracking-tight leading-[0.9] text-[var(--accent-purple)]">{activity.name}</h1>
+        </header>
+
         {/* Hero Banner */}
         <div className="relative aspect-[21/9] w-full rounded-2xl overflow-hidden border border-[var(--border-soft)] mb-12 bg-[var(--surface-soft)]">
           <Image
-            src={activity.images && activity.images[0] ? activity.images[0] : '/images/artist-studio.png'}
+            src={activity.images && activity.images[0] ? activity.images[0] : '/images/studio/IMG_0890.png'}
             alt={activity.name}
             fill
             className="object-cover"
             priority
           />
-          <div className="absolute inset-0 bg-black/30" />
-          <div className="absolute bottom-6 left-6 md:bottom-10 md:left-10 text-white flex flex-col gap-2">
-            <span className="font-mono text-xs uppercase tracking-widest text-[var(--accent-orange)] font-semibold bg-black/45 px-3 py-1 rounded-full w-fit">
-              {activity.category}
-            </span>
-            <h1 className="font-serif text-4xl md:text-6xl tracking-tight leading-none drop-shadow-md">
-              {activity.name}
-            </h1>
-          </div>
         </div>
+
+        {activity.images.length > 1 && (
+          <section className="mb-12 grid grid-cols-2 gap-4 sm:grid-cols-3" aria-label={`${activity.name} gallery`}>
+            {activity.images.map((image, index) => (
+              <div key={image} className="relative aspect-square overflow-hidden rounded-xl border border-[var(--border-soft)] bg-[var(--surface-soft)]">
+                <Image src={image} alt={`${activity.name} example ${index + 1}`} fill sizes="(max-width: 640px) 45vw, 30vw" className="object-cover" />
+              </div>
+            ))}
+          </section>
+        )}
 
         {/* Two Column details & form */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start mb-24">
@@ -183,7 +189,7 @@ export default function ActivityDetailPage({ params }: PageProps) {
           </div>
 
           {/* Right booking form column */}
-          <div className="lg:col-span-2 lg:sticky lg:top-24">
+          <div id="booking-form" className="lg:col-span-2 lg:sticky lg:top-24 scroll-mt-24">
             <BookingForm activity={activity} />
           </div>
 
@@ -202,7 +208,7 @@ export default function ActivityDetailPage({ params }: PageProps) {
                   className="section-shell p-4 bg-white/80 hover:[box-shadow:var(--shadow-soft)] transition-all duration-300 group flex flex-col gap-4"
                 >
                   <div className="relative aspect-video rounded-xl overflow-hidden border border-[var(--border-soft)]">
-                    <Image src={sim.images?.[0] || '/images/artist-studio.png'} alt={sim.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <Image src={sim.images?.[0] || '/images/studio/IMG_0890.png'} alt={sim.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
                   </div>
                   <div className="flex justify-between items-baseline">
                     <h3 className="font-serif text-lg font-semibold truncate group-hover:text-[var(--accent-purple)] transition-colors">{sim.name}</h3>
@@ -216,6 +222,9 @@ export default function ActivityDetailPage({ params }: PageProps) {
         )}
 
       </div>
+      <a href="#booking-form" className="fixed bottom-4 left-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 rounded-full bg-[var(--accent-purple)] px-6 py-4 text-center font-mono text-xs uppercase tracking-[0.14em] text-white font-black shadow-[0_12px_30px_rgba(58,30,112,0.3)] transition-colors hover:bg-[var(--accent-orange)]">
+        Book this experience
+      </a>
       <Footer />
     </main>
   );

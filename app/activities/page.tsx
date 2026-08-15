@@ -33,7 +33,7 @@ export default function ActivitiesPage() {
     fetchListings();
   }, []);
 
-  const categories = ['all', 'Painting', 'Crafts', 'Body Art', 'Entertainment'];
+  const categories = ['all', 'Painting', 'Crafts', 'Sculpting', 'Body Art', 'Entertainment'];
 
   const filtered = activities.filter((act) => {
     const matchesSearch = act.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -164,7 +164,7 @@ export default function ActivitiesPage() {
                     {/* Image */}
                     <Link href={`/activities/${act.slug}`} className="block relative aspect-[4/3] rounded-xl overflow-hidden border border-[var(--border-soft)] bg-[var(--surface-soft)]">
                       <Image
-                        src={act.images && act.images[0] ? act.images[0] : '/images/artist-studio.png'}
+                        src={act.images && act.images[0] ? act.images[0] : '/images/studio/IMG_0890.png'}
                         alt={act.name}
                         fill
                         className="object-cover transition-transform duration-700 group-hover:scale-105"
@@ -201,13 +201,13 @@ export default function ActivitiesPage() {
                   <div className="flex justify-between items-center border-t border-[var(--border-soft)] pt-4 mt-2">
                     <div className="flex flex-col">
                       <span className="font-sans text-[10px] uppercase tracking-widest text-[var(--text-muted)]">Starting From</span>
-                      <span className="font-mono text-sm font-semibold text-[var(--foreground)]">
+                      <span className="font-sans text-xl md:text-2xl font-extrabold tracking-tight text-[var(--foreground)]">
                         {startingPriceText}
                       </span>
                     </div>
                     <Link
                       href={`/activities/${act.slug}`}
-                      className="px-5 py-2.5 rounded-full bg-[var(--accent-purple)] text-white font-mono text-[10px] uppercase tracking-widest font-semibold hover:bg-[var(--accent-orange)] hover:scale-105 transition-all shadow-sm"
+                      className="px-5 py-2.5 rounded-full bg-[var(--accent-purple)] text-white font-mono text-[10px] uppercase tracking-widest font-black hover:bg-[var(--accent-orange)] hover:scale-105 transition-all shadow-sm"
                     >
                       Book Now
                     </Link>

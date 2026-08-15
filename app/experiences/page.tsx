@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   title: 'Experiences | Creative Studio Sessions in Awka',
   description: 'Book guided paint, craft, and social studio experiences at Artsy by Oma in Awka, Nigeria.',
   alternates: { canonical: '/experiences' },
-  openGraph: { title: 'Experiences | Artsy by Oma', description: 'Guided creative sessions and paint-and-sip experiences in Awka.', url: '/experiences', images: [{ url: '/images/events/IMG_5527.JPG', alt: 'Creative studio experience at Artsy by Oma' }] },
+  openGraph: { title: 'Experiences | Artsy by Oma', description: 'Guided creative sessions and paint-and-sip experiences in Awka.', url: '/experiences', images: [{ url: '/images/studio/IMG_0887.png', alt: 'Paint-and-sip tables inside the Artsy by Oma studio' }] },
 };
 
 export default async function ExperiencesPage() {

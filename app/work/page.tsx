@@ -1,8 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
-import { SELECTED_WORKS } from "@/lib/selectedWorks";
+import { getPublicArtworks } from "@/lib/public-data";
 
-export default function WorksPage() {
+export const dynamic = 'force-dynamic';
+
+export default async function WorksPage() {
+  const artworks = await getPublicArtworks();
+
   return (
     <main className="pt-32 min-h-screen bg-[var(--background)] text-[var(--foreground)]">
       <section className="max-w-[90vw] mx-auto pb-24">
@@ -19,15 +23,15 @@ export default function WorksPage() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {SELECTED_WORKS.map((art) => (
+          {artworks.map((art) => (
             <article
               key={art.id}
               className="section-shell p-4 md:p-5 flex flex-col gap-4"
             >
-              <Link href={`/work/${art.id}`} className="group block">
+              <Link href={`/art/${art.slug}`} className="group block">
                 <div className="relative aspect-[4/5] overflow-hidden rounded-xl border border-[var(--border-soft)] bg-[var(--surface-soft)]">
                   <Image
-                    src={art.image}
+                    src={art.images?.[0] || '/images/artist-studio.png'}
                     alt={art.title}
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -47,7 +51,7 @@ export default function WorksPage() {
               </p>
 
               <Link
-                href={`/work/${art.id}`}
+                href={`/art/${art.slug}`}
                 className="mt-1 w-fit px-5 py-2 rounded-full border border-[var(--accent-primary)] text-[var(--accent-primary)] font-mono text-xs uppercase tracking-[0.14em] hover:bg-[var(--accent-primary)] hover:text-white transition-colors"
               >
                 View Work

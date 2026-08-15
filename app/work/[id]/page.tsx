@@ -1,21 +1,17 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { SELECTED_WORKS, SELECTED_WORKS_BY_ID } from '@/lib/selectedWorks';
+import { notFound } from 'next/navigation';
+import { getPublicArtwork } from '@/lib/public-data';
+import { formatNaira } from '@/lib/site';
 
-export function generateStaticParams() {
-  return SELECTED_WORKS.map((art) => ({ id: art.id }));
-}
+export const dynamic = 'force-dynamic';
 
-export default async function ArtworkPage({ params }: { params: Promise<{ id: string }> }) { // Updated for Next.js 15
+export default async function ArtworkPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
-    const art = SELECTED_WORKS_BY_ID[id];
+    const art = await getPublicArtwork(id);
 
     if (!art) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-[#121212] text-white">
-                <h1 className="font-mono text-xl">Artwork Not Found</h1>
-            </div>
-        );
+        notFound();
     }
 
     return (
@@ -25,7 +21,7 @@ export default async function ArtworkPage({ params }: { params: Promise<{ id: st
                 {/* Image Section */}
                 <div className="w-full lg:w-2/3 h-[80vh] relative bg-[#222]">
                     <Image 
-                        src={art.image} 
+                        src={art.images?.[0] || '/images/artist-studio.png'} 
                         alt={art.title} 
                         fill 
                         className="object-contain"
@@ -52,7 +48,7 @@ export default async function ArtworkPage({ params }: { params: Promise<{ id: st
                         </div>
                         <div className="flex justify-between text-[var(--accent-orange)]">
                             <span className="opacity-50">Price</span>
-                            <span>{art.price}</span>
+                            <span>{art.status === 'AVAILABLE' && art.price > 0 ? formatNaira(art.price) : 'Price on request'}</span>
                         </div>
                     </div>
 

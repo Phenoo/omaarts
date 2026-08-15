@@ -1,6 +1,7 @@
-import { db } from '../config';
+import { auth, db } from '../config';
 import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
 import { Booking, Order, Sale, Artwork } from '../../types';
+import { firebaseErrorDetails } from '@/lib/firebase/errorDetails';
 
 export interface DashboardStats {
   todaySales: number;
@@ -17,11 +18,13 @@ export interface DashboardStats {
 }
 
 export async function getDashboardStats(): Promise<DashboardStats> {
+  let stage = 'initialising';
   try {
     const todayStr = new Date().toISOString().split('T')[0];
     const firstOfMonthStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-01`;
 
     // 1. Fetch Sales collection
+    stage = 'sales';
     const salesCol = collection(db, 'sales');
     const salesSnap = await getDocs(salesCol);
     const sales = salesSnap.docs.map(d => ({ id: d.id, ...d.data() } as Sale));
@@ -41,6 +44,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     });
 
     // 2. Fetch Bookings collection
+    stage = 'bookings';
     const bookingsCol = collection(db, 'bookings');
     const bookingsSnap = await getDocs(bookingsCol);
     const bookings = bookingsSnap.docs.map(d => d.data() as Booking);
@@ -58,11 +62,13 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     });
 
     // 3. Fetch Orders (pending fulfilment count)
+    stage = 'pending orders';
     const ordersCol = collection(db, 'orders');
     const ordersSnap = await getDocs(query(ordersCol, where('fulfilmentStatus', '==', 'PENDING')));
     const pendingOrdersCount = ordersSnap.size;
 
     // 4. Fetch Artworks counts
+    stage = 'artworks';
     const artworksCol = collection(db, 'artworks');
     const artworksSnap = await getDocs(artworksCol);
     const artworks = artworksSnap.docs.map(d => d.data() as Artwork);
@@ -79,6 +85,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     });
 
     // 5. Recent Sales Ledger items
+    stage = 'recent sales';
     const recentSalesQuery = query(salesCol, orderBy('createdAt', 'desc'), limit(5));
     const recentSalesSnap = await getDocs(recentSalesQuery);
     const recentSales = recentSalesSnap.docs.map(d => ({ id: d.id, ...d.data() } as Sale));
@@ -131,7 +138,12 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       monthlyRevenueData,
     };
   } catch (error) {
-    console.error('Error calculating dashboard stats:', error);
+    console.error('[DashboardAnalytics] Failed to load dashboard stats', {
+      stage,
+      uid: auth.currentUser?.uid ?? null,
+      projectId: db.app.options.projectId,
+      ...firebaseErrorDetails(error),
+    });
     throw error;
   }
 }

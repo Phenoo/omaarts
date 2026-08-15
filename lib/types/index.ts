@@ -1,4 +1,4 @@
-export type UserRole = 'customer' | 'staff' | 'admin' | 'super_admin';
+export type UserRole = 'customer' | 'staff' | 'admin' | 'super_admin' | 'super_Admin';
 
 export interface UserDoc {
   uid: string;

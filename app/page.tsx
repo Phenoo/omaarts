@@ -3,14 +3,19 @@ import Link from 'next/link';
 import HeroCanvas from '../components/home/HeroCanvas';
 import FeaturedActivities from '../components/home/FeaturedActivities';
 import Footer from '../components/Footer';
-import { SELECTED_WORKS } from '@/lib/selectedWorks';
-import type { Metadata } from 'next';
+import { getPublicArtworks } from '@/lib/public-data';
+import { STUDIO_IMAGES } from '@/lib/studioImages';
+import { createPageMetadata } from '@/lib/seo';
 
-export const metadata: Metadata = {
-  title: 'Artsy By Oma | Contemporary Artist and Creative Studio in Awka',
+export const dynamic = 'force-dynamic';
+
+export const metadata = createPageMetadata({
+  title: 'Contemporary Artist and Creative Studio in Awka',
   description: 'Discover original contemporary works, guided studio experiences, and private events by Oma Achebe at Artsy by Oma in Awka, Nigeria.',
-  alternates: { canonical: '/' },
-};
+  pathname: '/',
+  image: '/images/studio/IMG_0889.png',
+  imageAlt: 'The Artsy by Oma creative studio in Awka',
+});
 
 const PRACTICE_AREAS = [
   {
@@ -65,7 +70,10 @@ const PRIVATE_EVENT_STEPS = [
   'Receive confirmation and studio preparation details.',
 ];
 
-export default function Home() {
+export default async function Home() {
+  const artworks = await getPublicArtworks();
+  const featuredWorks = artworks.slice(0, 3);
+
   return (
     <main id="main-content" className="relative isolate overflow-hidden">
       <HeroCanvas />
@@ -103,61 +111,63 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-20 md:py-24">
-          <div className="max-w-[90vw] mx-auto">
-            <div className="mb-10 flex flex-col gap-6 md:mb-14 md:flex-row md:items-end md:justify-between">
-              <div>
-                <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-[var(--accent-orange)]">
-                  Selected Works
-                </p>
-                <h2 className="mt-3 max-w-2xl font-serif text-4xl leading-[0.95] tracking-tight md:text-6xl">
-                  A sharper look at the current body of work.
-                </h2>
+        {featuredWorks.length > 0 && (
+          <section className="py-6 md:py-10">
+            <div className="max-w-[90vw] mx-auto">
+              <div className="mb-10 flex flex-col gap-6 md:mb-14 md:flex-row md:items-end md:justify-between">
+                <div>
+                  <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-[var(--accent-orange)]">
+                    Selected Works
+                  </p>
+                  <h2 className="mt-3 max-w-2xl font-serif text-4xl leading-[0.95] tracking-tight md:text-6xl">
+                    A sharper look at the current body of work.
+                  </h2>
+                </div>
+
+                <Link
+                  href="/art"
+                  className="w-fit rounded-full border border-[var(--accent-primary)] px-5 py-2.5 font-mono text-[11px] uppercase tracking-[0.18em] text-[var(--accent-primary)] transition-colors hover:bg-[var(--accent-primary)] hover:text-white"
+                >
+                  View Full Collection
+                </Link>
               </div>
 
-              <Link
-                href="/art"
-                className="w-fit rounded-full border border-[var(--accent-primary)] px-5 py-2.5 font-mono text-[11px] uppercase tracking-[0.18em] text-[var(--accent-primary)] transition-colors hover:bg-[var(--accent-primary)] hover:text-white"
-              >
-                View Full Collection
-              </Link>
-            </div>
+              <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                {featuredWorks.map((work) => (
+                  <article
+                    key={work.id}
+                    className="group rounded-[1.75rem] border border-[var(--border-soft)] bg-white/90 p-4 shadow-[var(--shadow-soft)]"
+                  >
+                    <Link href={`/art/${work.slug}`} className="block">
+                      <div className="relative aspect-[4/5] overflow-hidden rounded-[1.25rem] bg-[var(--surface-soft)]">
+                        <Image
+                          src={work.images?.[0] || '/images/artist-studio.png'}
+                          alt={work.title}
+                          fill
+                          className="object-cover transition-transform duration-700 group-hover:scale-105"
+                        />
+                      </div>
+                    </Link>
 
-            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-              {SELECTED_WORKS.slice(0, 4).map((work) => (
-                <article
-                  key={work.id}
-                  className="group rounded-[1.75rem] border border-[var(--border-soft)] bg-white/90 p-4 shadow-[var(--shadow-soft)]"
-                >
-                  <Link href={`/work/${work.id}`} className="block">
-                    <div className="relative aspect-[4/5] overflow-hidden rounded-[1.25rem] bg-[var(--surface-soft)]">
-                      <Image
-                        src={work.image}
-                        alt={work.title}
-                        fill
-                        className="object-cover transition-transform duration-700 group-hover:scale-105"
-                      />
+                    <div className="mt-4 flex items-start justify-between gap-4">
+                      <div>
+                        <h3 className="font-serif text-2xl leading-tight tracking-tight">
+                          <Link href={`/art/${work.slug}`} className="hover:text-[var(--accent-primary)] transition-colors">{work.title}</Link>
+                        </h3>
+                        <p className="mt-1 text-sm text-[var(--text-muted)]">
+                          {work.medium}
+                        </p>
+                      </div>
+                      <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--text-muted)]">
+                        {work.year}
+                      </span>
                     </div>
-                  </Link>
-
-                  <div className="mt-4 flex items-start justify-between gap-4">
-                    <div>
-                      <h3 className="font-serif text-2xl leading-tight tracking-tight">
-                        {work.title}
-                      </h3>
-                      <p className="mt-1 text-sm text-[var(--text-muted)]">
-                        {work.medium}
-                      </p>
-                    </div>
-                    <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--text-muted)]">
-                      {work.year}
-                    </span>
-                  </div>
-                </article>
-              ))}
+                  </article>
+                ))}
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         <section className="py-6 md:py-10">
           <div className="max-w-[90vw] mx-auto grid gap-6 lg:grid-cols-[1fr_1.05fr]">
@@ -213,8 +223,8 @@ export default function Home() {
             <div className="grid gap-6 md:grid-cols-[1.15fr_0.85fr]">
               <div className="relative min-h-[24rem] overflow-hidden rounded-[2rem] border border-[var(--border-soft)] bg-[var(--surface-soft)]">
                 <Image
-                  src="/images/about-me.jpg"
-                  alt="Oma Achebe in the studio"
+                  src={STUDIO_IMAGES.room}
+                  alt="The main room at the Artsy by Oma studio"
                   fill
                   className="object-cover"
                 />
@@ -244,6 +254,38 @@ export default function Home() {
         </section>
 
         <FeaturedActivities />
+
+        <section className="py-20 md:py-24" aria-labelledby="studio-gallery-heading">
+          <div className="max-w-[90vw] mx-auto">
+            <div className="mb-10 flex flex-col gap-5 md:mb-14 md:flex-row md:items-end md:justify-between">
+              <div>
+                <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-[var(--accent-orange)]">
+                  Inside the studio
+                </p>
+                <h2 id="studio-gallery-heading" className="mt-3 max-w-2xl font-serif text-4xl leading-[0.95] tracking-tight md:text-6xl">
+                  A bright, playful room made for making memories.
+                </h2>
+              </div>
+              <p className="max-w-md text-sm leading-relaxed text-[var(--text-muted)] md:text-right">
+                Paint, sip, play, and make something together in our Awka studio.
+              </p>
+            </div>
+
+            <div className="grid gap-5 md:grid-cols-[1.15fr_0.85fr]">
+              <div className="relative min-h-[28rem] overflow-hidden rounded-[2rem] border border-[var(--border-soft)] bg-[var(--surface-soft)] md:min-h-[36rem]">
+                <Image src={STUDIO_IMAGES.front} alt="Paint-and-sip tables and the mural wall at the Artsy by Oma studio" fill sizes="(max-width: 768px) 90vw, 55vw" className="object-cover" />
+              </div>
+              <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-1">
+                <div className="relative min-h-[16rem] overflow-hidden rounded-[2rem] border border-[var(--border-soft)] bg-[var(--surface-soft)]">
+                  <Image src={STUDIO_IMAGES.room} alt="Seating and artwork inside the Artsy by Oma studio" fill sizes="(max-width: 768px) 45vw, 35vw" className="object-cover" />
+                </div>
+                <div className="relative min-h-[16rem] overflow-hidden rounded-[2rem] border border-[var(--border-soft)] bg-[var(--surface-soft)]">
+                  <Image src={STUDIO_IMAGES.primary} alt="The colorful mural and creative setup inside the studio" fill sizes="(max-width: 768px) 45vw, 35vw" className="object-cover" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
         <section className="py-20 md:py-24">
           <div className="max-w-[90vw] mx-auto overflow-hidden rounded-[2.25rem] border border-[var(--accent-primary)]/12 bg-[var(--surface-strong)] text-white shadow-[0_30px_90px_rgba(58,30,112,0.22)]">

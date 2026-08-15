@@ -1,37 +1,13 @@
 import { INITIAL_ACTIVITIES } from '@/lib/firebase/services/seedData';
 import { getAdminContext } from '@/lib/firebase/admin';
 import { Activity, Artwork } from '@/lib/types';
-import { SELECTED_WORKS } from '@/lib/selectedWorks';
+import { withActivityImages } from '@/lib/activityImages';
 
 export type PublicArtwork = Artwork & {
   availabilityLabel: string;
 };
 
 export type PublicExperience = Activity;
-
-const fallbackArtworks: PublicArtwork[] = SELECTED_WORKS.map((work) => ({
-  id: work.id,
-  title: work.title,
-  slug: work.id,
-  description: work.description,
-  story:
-    'A contemporary study by Oma Achebe, built through layered colour, texture, and expressive mark-making.',
-  artist: 'Oma Achebe',
-  year: work.year,
-  medium: work.medium,
-  dimensions: work.dimensions,
-  categoryId: 'contemporary',
-  images: [work.image],
-  price: 0,
-  currency: 'NGN',
-  inventoryQty: 0,
-  availableForSale: false,
-  featured: true,
-  status: 'PORTFOLIO_ONLY',
-  createdAt: '2026-01-01T00:00:00.000Z',
-  updatedAt: '2026-01-01T00:00:00.000Z',
-  availabilityLabel: 'Price on request',
-}));
 
 function cleanDate(value: unknown) {
   if (typeof value === 'string') return value;
@@ -64,20 +40,20 @@ function normalizeArtwork(id: string, data: Record<string, unknown>): PublicArtw
   };
 }
 
-async function getFirebaseArtworks(): Promise<PublicArtwork[] | null> {
+async function getFirebaseArtworks(): Promise<PublicArtwork[]> {
   const { adminDb, isConfigured } = getAdminContext();
-  if (!isConfigured || !adminDb) return null;
+  if (!isConfigured || !adminDb) return [];
 
   try {
     const snapshot = await adminDb.collection('artworks').where('status', '!=', 'ARCHIVED').get();
-    if (snapshot.empty) return null;
+    if (snapshot.empty) return [];
     return snapshot.docs
       .map((doc) => normalizeArtwork(doc.id, doc.data()))
       .filter((artwork) => artwork.status !== 'RESERVED')
-      .sort((a, b) => Number(b.featured) - Number(a.featured) || b.year.localeCompare(a.year));
+      .sort((a, b) => Number(b.featured) - Number(a.featured) || (b.year || '').localeCompare(a.year || ''));
   } catch (error) {
-    console.error('Public artwork read failed; using safe fallback data.', error);
-    return null;
+    console.error('Failed to fetch artworks from Firebase backend:', error);
+    return [];
   }
 }
 
@@ -89,7 +65,7 @@ async function getFirebaseExperiences(): Promise<PublicExperience[] | null> {
     const snapshot = await adminDb.collection('activities').where('active', '==', true).get();
     if (snapshot.empty) return null;
     return snapshot.docs
-      .map((doc) => ({ id: doc.id, ...doc.data() } as Activity))
+      .map((doc) => withActivityImages({ id: doc.id, ...doc.data() } as Activity))
       .sort((a, b) => a.sortOrder - b.sortOrder);
   } catch (error) {
     console.error('Public experience read failed; using safe fallback data.', error);
@@ -97,11 +73,37 @@ async function getFirebaseExperiences(): Promise<PublicExperience[] | null> {
   }
 }
 
-export async function getPublicArtworks() {
-  return (await getFirebaseArtworks()) || fallbackArtworks;
+export async function getPublicArtworks(): Promise<PublicArtwork[]> {
+  return await getFirebaseArtworks();
 }
 
-export async function getPublicArtwork(slug: string) {
+export async function getPublicArtwork(slug: string): Promise<PublicArtwork | null> {
+  const { adminDb, isConfigured } = getAdminContext();
+  if (isConfigured && adminDb) {
+    try {
+      // 1. Query by doc id / slug
+      const docSnap = await adminDb.collection('artworks').doc(slug).get();
+      if (docSnap.exists) {
+        const data = docSnap.data();
+        if (data && data.status !== 'ARCHIVED') {
+          return normalizeArtwork(docSnap.id, data);
+        }
+      }
+
+      // 2. Query by slug property
+      const querySnap = await adminDb.collection('artworks').where('slug', '==', slug).limit(1).get();
+      if (!querySnap.empty) {
+        const firstDoc = querySnap.docs[0];
+        const data = firstDoc.data();
+        if (data && data.status !== 'ARCHIVED') {
+          return normalizeArtwork(firstDoc.id, data);
+        }
+      }
+    } catch (error) {
+      console.error(`Failed to fetch artwork ${slug} from backend:`, error);
+    }
+  }
+
   const artworks = await getPublicArtworks();
   return artworks.find((artwork) => artwork.slug === slug || artwork.id === slug) || null;
 }

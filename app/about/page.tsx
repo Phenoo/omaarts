@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { STUDIO_IMAGES } from '@/lib/studioImages';
 
 export default function AboutPage() {
   return (
@@ -32,7 +33,27 @@ export default function AboutPage() {
             <p className="font-mono text-xs text-center opacity-50">Photographed in Awka Studio, 2025</p>
         </section>
 
-        {/* 3. Longer Bio (The Story) */}
+        {/* 3. Studio */}
+        <section className="mb-20">
+            <div className="mb-8">
+                <p className="font-mono text-sm uppercase tracking-widest text-[var(--accent-orange)]">The Studio</p>
+                <h2 className="mt-3 font-serif text-4xl tracking-tight md:text-5xl">Come into the room where it happens.</h2>
+                <p className="mt-4 max-w-2xl text-lg leading-relaxed opacity-80">Artsy by Oma is a colorful, welcoming creative studio in Awka for original work, guided sessions, and private gatherings.</p>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+                <div className="relative aspect-[3/4] overflow-hidden rounded-2xl md:row-span-2">
+                    <Image src={STUDIO_IMAGES.primary} alt="Colorful mural and art materials in the Artsy by Oma studio" fill sizes="(max-width: 768px) 92vw, 45vw" className="object-cover" />
+                </div>
+                <div className="relative aspect-[4/3] overflow-hidden rounded-2xl">
+                    <Image src={STUDIO_IMAGES.front} alt="Paint-and-sip seating at the Artsy by Oma studio" fill sizes="(max-width: 768px) 92vw, 35vw" className="object-cover" />
+                </div>
+                <div className="relative aspect-[4/3] overflow-hidden rounded-2xl">
+                    <Image src={STUDIO_IMAGES.room} alt="Artwork and seating inside the Artsy by Oma studio" fill sizes="(max-width: 768px) 92vw, 35vw" className="object-cover" />
+                </div>
+            </div>
+        </section>
+
+        {/* 4. Longer Bio (The Story) */}
         <section className="mb-20">
             <h2 className="font-mono text-sm uppercase tracking-widest text-[var(--accent-orange)] mb-8">The Story</h2>
             <div className="space-y-6 font-sans text-lg leading-relaxed opacity-90">

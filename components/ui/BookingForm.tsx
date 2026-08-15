@@ -7,7 +7,7 @@ import DatePicker from './DatePicker';
 import TimeSlotPicker from './TimeSlotPicker';
 import { calculateActivityPrice } from '../../lib/utils/pricing';
 import { validateBookingInput, ValidationError } from '../../lib/validation';
-import { Calendar, Users, Clock, CreditCard, ClipboardList } from 'lucide-react';
+import { Calendar, Users, Clock, CreditCard, ClipboardList, AlertCircle, X } from 'lucide-react';
 import { auth } from '@/lib/firebase/config';
 
 interface BookingSubmitResult {
@@ -84,11 +84,14 @@ export default function BookingForm({ activity, onSuccess }: BookingFormProps) {
 
     if (validationErrors.length > 0) {
       setErrors(validationErrors);
+      setSubmitError(validationErrors[0]?.message || 'Please fill in all required fields.');
       // Scroll to the first error
-      const firstErrorEl = document.getElementById(`err-${validationErrors[0].field}`);
-      if (firstErrorEl) {
-        firstErrorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
+      setTimeout(() => {
+        const firstErrorEl = document.getElementById(`err-${validationErrors[0].field}`) || document.getElementById('booking-error-banner');
+        if (firstErrorEl) {
+          firstErrorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
       return;
     }
 
@@ -138,7 +141,14 @@ export default function BookingForm({ activity, onSuccess }: BookingFormProps) {
     } catch (err: unknown) {
       console.error('Booking checkout error:', err);
       if (responseReceived) checkoutIdRef.current = null;
-      setSubmitError(err instanceof Error ? err.message : 'An unexpected error occurred. Please try again.');
+      const msg = err instanceof Error ? err.message : 'An unexpected error occurred. Please try again.';
+      setSubmitError(msg);
+      setTimeout(() => {
+        const banner = document.getElementById('booking-error-banner');
+        if (banner) {
+          banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
       setLoading(false);
     }
   };
@@ -158,8 +168,20 @@ export default function BookingForm({ activity, onSuccess }: BookingFormProps) {
       </div>
 
       {submitError && (
-        <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-600 font-mono text-xs">
-          {submitError}
+        <div id="booking-error-banner" className="p-4 rounded-xl bg-red-50 border-2 border-red-300 text-red-800 flex items-start gap-3 shadow-sm">
+          <AlertCircle className="text-red-600 shrink-0 mt-0.5" size={18} />
+          <div className="flex-grow">
+            <span className="font-mono text-xs font-bold block text-red-900 mb-0.5">Booking Notice</span>
+            <span className="font-sans text-sm text-red-700">{submitError}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSubmitError('')}
+            className="text-red-400 hover:text-red-700"
+            aria-label="Dismiss error"
+          >
+            <X size={16} />
+          </button>
         </div>
       )}
 
@@ -187,7 +209,7 @@ export default function BookingForm({ activity, onSuccess }: BookingFormProps) {
               >
                 <span className="font-serif text-lg text-[var(--foreground)]">{v.name}</span>
                 {v.description && <span className="font-sans text-xs text-[var(--text-muted)]">{v.description}</span>}
-                <span className="font-mono text-sm text-[var(--accent-orange)] font-semibold mt-1">
+                <span className="font-sans text-base text-[var(--accent-orange)] font-extrabold mt-1">
                   ₦{v.price.toLocaleString()}
                 </span>
               </button>
@@ -411,10 +433,20 @@ export default function BookingForm({ activity, onSuccess }: BookingFormProps) {
             
             <div className="border-t border-[var(--border-soft)] pt-3 flex justify-between items-center mt-2">
               <span className="font-serif text-base text-[var(--foreground)] font-bold">Total Amount</span>
-              <span className="font-mono text-xl text-[var(--accent-orange)] font-bold">
+              <span className="font-sans text-2xl md:text-3xl text-[var(--accent-orange)] font-extrabold tracking-tight">
                 ₦{priceResult.total.toLocaleString()}
               </span>
             </div>
+          </div>
+        </div>
+      )}
+
+      {submitError && (
+        <div className="p-3.5 rounded-xl bg-red-50 border border-red-300 text-red-700 text-xs flex items-start gap-2.5 shadow-sm">
+          <AlertCircle size={18} className="text-red-600 shrink-0 mt-0.5" />
+          <div className="flex-grow">
+            <span className="font-mono font-bold block text-red-900 mb-0.5">Please check your details</span>
+            <span className="leading-snug">{submitError}</span>
           </div>
         </div>
       )}

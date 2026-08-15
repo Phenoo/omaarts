@@ -63,7 +63,7 @@ export default function FeaturedArtworks() {
             </h2>
           </div>
           <Link
-            href="/portfolio"
+            href="/art"
             className="font-mono text-xs uppercase tracking-widest text-[var(--accent-purple)] hover:text-[var(--accent-orange)] transition-colors flex items-center gap-1"
           >
             Explore Full Gallery
@@ -79,7 +79,7 @@ export default function FeaturedArtworks() {
             >
               {/* Image Container */}
               <Link
-                href={`/portfolio/${art.slug}`}
+                href={`/art/${art.slug}`}
                 className="block relative aspect-[4/5] overflow-hidden rounded-xl border border-[var(--border-soft)] bg-[var(--surface-soft)]"
               >
                 <Image
@@ -93,7 +93,7 @@ export default function FeaturedArtworks() {
                 <div className="absolute top-3 left-3">
                   <span className={`px-2.5 py-1 rounded-full font-mono text-[9px] uppercase tracking-wider font-semibold border shadow-sm
                     ${art.status === 'AVAILABLE' 
-                      ? 'bg-green-55 bg-green-50 text-green-700 border-green-200' 
+                      ? 'bg-green-50 text-green-700 border-green-200' 
                       : 'bg-red-50 text-red-700 border-red-200'
                     }
                   `}>
@@ -105,7 +105,7 @@ export default function FeaturedArtworks() {
               {/* Text */}
               <div className="flex justify-between items-baseline gap-2">
                 <h3 className="font-serif text-2xl truncate group-hover:text-[var(--accent-purple)] transition-colors">
-                  <Link href={`/portfolio/${art.slug}`}>{art.title}</Link>
+                  <Link href={`/art/${art.slug}`}>{art.title}</Link>
                 </h3>
                 <span className="font-mono text-xs text-[var(--text-muted)]">{art.year}</span>
               </div>
@@ -121,7 +121,7 @@ export default function FeaturedArtworks() {
                 </span>
                 
                 <Link
-                  href={`/portfolio/${art.slug}`}
+                  href={`/art/${art.slug}`}
                   className="px-4 py-2 border border-[var(--accent-primary)] text-[var(--accent-primary)] font-mono text-[10px] uppercase tracking-widest rounded-full hover:bg-[var(--accent-primary)] hover:text-white transition-all flex items-center gap-1"
                 >
                   <Eye size={12} />

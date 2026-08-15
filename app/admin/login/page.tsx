@@ -8,6 +8,7 @@ import { auth, db } from '@/lib/firebase/config';
 import { signInWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { UserDoc } from '@/lib/types';
+import { isStaffRole } from '@/lib/auth/roles';
 import { ShieldAlert, LogIn, Lock, Mail } from 'lucide-react';
 
 function AdminLoginContent() {
@@ -55,7 +56,7 @@ function AdminLoginContent() {
         const profile = userSnap.data() as UserDoc;
         const role = profile.role;
 
-        if (role === 'admin' || role === 'super_admin' || role === 'staff') {
+        if (isStaffRole(role)) {
           // Authorized: redirect to dashboard
           router.push('/admin');
         } else {
@@ -103,7 +104,7 @@ function AdminLoginContent() {
         const profile = userSnap.data() as UserDoc;
         const role = profile.role;
 
-        if (role === 'admin' || role === 'super_admin' || role === 'staff') {
+        if (isStaffRole(role)) {
           // Authorized: redirect to dashboard
           router.push('/admin');
         } else {

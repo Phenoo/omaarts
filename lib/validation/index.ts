@@ -81,8 +81,8 @@ export function validateOrderInput(data: {
     errors.push({ field: 'phone', message: 'A valid phone number is required' });
   }
 
-  if (data.deliveryOption === 'delivery' && (!data.deliveryAddress || !data.deliveryAddress.trim())) {
-    errors.push({ field: 'deliveryAddress', message: 'Delivery address is required' });
+  if (data.deliveryOption === 'delivery' && (!data.deliveryAddress || data.deliveryAddress.trim().length < 10)) {
+    errors.push({ field: 'deliveryAddress', message: 'Please provide a complete delivery address (Street, City, State)' });
   }
 
   return errors;
