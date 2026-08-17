@@ -129,28 +129,34 @@ export function validateArtworkInput(data: Partial<Artwork>): ValidationError[] 
 
   if (!data.slug?.trim()) {
     errors.push({ field: 'slug', message: 'Slug is required' });
-  } else if (!/^[a-z0-9-]+$/.test(data.slug)) {
-    errors.push({ field: 'slug', message: 'Slug must be lowercase alphanumeric and hyphens only' });
+  } else if (!/^[a-z0-9-]+$/.test(data.slug.trim())) {
+    errors.push({ field: 'slug', message: 'Slug must be lowercase alphanumeric and hyphens only (e.g. my-artwork)' });
   }
 
   if (!data.artist?.trim()) {
-    errors.push({ field: 'artist', message: 'Artist is required' });
+    errors.push({ field: 'artist', message: 'Artist name is required' });
   }
 
   if (!data.medium?.trim()) {
-    errors.push({ field: 'medium', message: 'Medium is required' });
+    errors.push({ field: 'medium', message: 'Medium is required (e.g. Acrylic on Canvas)' });
   }
 
   if (!data.dimensions?.trim()) {
-    errors.push({ field: 'dimensions', message: 'Dimensions is required' });
+    errors.push({ field: 'dimensions', message: 'Dimensions are required' });
   }
 
-  if (data.price === undefined || data.price < 0) {
-    errors.push({ field: 'price', message: 'Price must be 0 or greater' });
+  // Price is optional (exhibition artworks can have 0 or omit price)
+  if (data.price !== undefined && data.price !== null && (data.price as any) !== '') {
+    if (isNaN(Number(data.price)) || Number(data.price) < 0) {
+      errors.push({ field: 'price', message: 'Price must be a valid number (0 or greater)' });
+    }
   }
 
-  if (data.inventoryQty === undefined || data.inventoryQty < 0) {
-    errors.push({ field: 'inventoryQty', message: 'Inventory quantity must be 0 or greater' });
+  // Inventory quantity is optional (defaults to 0 or 1)
+  if (data.inventoryQty !== undefined && data.inventoryQty !== null && (data.inventoryQty as any) !== '') {
+    if (isNaN(Number(data.inventoryQty)) || Number(data.inventoryQty) < 0) {
+      errors.push({ field: 'inventoryQty', message: 'Inventory quantity must be a valid number (0 or greater)' });
+    }
   }
 
   if (!data.status) {

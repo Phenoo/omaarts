@@ -9,7 +9,7 @@ import { Calendar, Search, SlidersHorizontal, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminBookingsPage() {
-  const { user } = useAdminAuth();
+  const { user, loading: authLoading } = useAdminAuth();
   
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,9 +21,8 @@ export default function AdminBookingsPage() {
   const [paymentFilter, setPaymentFilter] = useState<'all' | 'PENDING' | 'PAID' | 'FAILED'>('all');
   const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'upcoming' | 'past'>('all');
 
-
-
   const loadBookings = async () => {
+    if (!user) return;
     setLoading(true);
     setError(false);
     try {
@@ -38,8 +37,12 @@ export default function AdminBookingsPage() {
   };
 
   useEffect(() => {
-    loadBookings();
-  }, []);
+    if (!authLoading && user) {
+      loadBookings();
+    } else if (!authLoading && !user) {
+      setLoading(false);
+    }
+  }, [authLoading, user]);
 
 
 

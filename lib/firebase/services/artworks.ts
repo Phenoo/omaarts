@@ -93,7 +93,7 @@ export async function createArtwork(
     
     const checkDoc = await getDoc(docRef);
     if (checkDoc.exists()) {
-      throw new Error(`Artwork with slug '${data.slug}' already exists.`);
+      throw new Error(`An artwork with slug '${data.slug}' already exists. Please choose a different title or slug.`);
     }
 
     const artworkDoc = removeUndefinedFields({
@@ -124,7 +124,7 @@ export async function createArtwork(
     const auditRef = doc(collection(db, 'auditLogs'));
     const auditLogDoc: AuditLog = {
       id: auditRef.id,
-      adminUid,
+      adminUid: adminUid || 'admin',
       action: 'ARTWORK_CREATED',
       resourceType: 'artwork',
       resourceId: data.slug,
@@ -135,8 +135,14 @@ export async function createArtwork(
 
     await batch.commit();
     return data.slug;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating artwork:', error);
+    if (error?.code === 'permission-denied') {
+      throw new Error('Permission denied: You do not have permission to save artworks. Please ensure you are logged in as an authorized admin.');
+    }
+    if (error?.code === 'unavailable') {
+      throw new Error('Database connection unavailable. Please check your network connection and try again.');
+    }
     throw error;
   }
 }
@@ -152,7 +158,7 @@ export async function updateArtwork(
     const snapshot = await getDoc(docRef);
 
     if (!snapshot.exists()) {
-      throw new Error(`Artwork with ID ${id} does not exist`);
+      throw new Error(`Artwork with ID '${id}' does not exist.`);
     }
 
     const beforeData = snapshot.data() as Artwork;
@@ -186,7 +192,7 @@ export async function updateArtwork(
     const auditRef = doc(collection(db, 'auditLogs'));
     const auditLogDoc: AuditLog = {
       id: auditRef.id,
-      adminUid,
+      adminUid: adminUid || 'admin',
       action: 'ARTWORK_UPDATED',
       resourceType: 'artwork',
       resourceId: id,
@@ -200,8 +206,14 @@ export async function updateArtwork(
     batch.update(docRef, cleanUpdates);
 
     await batch.commit();
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error updating artwork ${id}:`, error);
+    if (error?.code === 'permission-denied') {
+      throw new Error('Permission denied: You do not have permission to update artworks. Please ensure you are logged in as an authorized admin.');
+    }
+    if (error?.code === 'unavailable') {
+      throw new Error('Database connection unavailable. Please check your network connection and try again.');
+    }
     throw error;
   }
 }

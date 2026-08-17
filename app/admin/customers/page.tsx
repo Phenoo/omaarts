@@ -2,15 +2,18 @@
 
 import React, { useEffect, useState } from 'react';
 import { getCustomers, CustomerProfile } from '@/lib/firebase/services/adminOperations';
+import { useAdminAuth } from '@/lib/context/AdminAuthContext';
 import { Users, Search, RefreshCw, Star, Mail, Phone, Calendar } from 'lucide-react';
 
 export default function AdminCustomersPage() {
+  const { user, loading: authLoading } = useAdminAuth();
   const [customers, setCustomers] = useState<CustomerProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
   const loadCustomers = async () => {
+    if (!user) return;
     setLoading(true);
     setError(false);
     try {
@@ -25,8 +28,12 @@ export default function AdminCustomersPage() {
   };
 
   useEffect(() => {
-    loadCustomers();
-  }, []);
+    if (!authLoading && user) {
+      loadCustomers();
+    } else if (!authLoading && !user) {
+      setLoading(false);
+    }
+  }, [authLoading, user]);
 
   const filtered = customers.filter((c) => 
     c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

@@ -7,7 +7,7 @@ import { Order, FulfilmentStatus, PaymentStatus } from '@/lib/types';
 import { Search, ShoppingBag, RefreshCw, FileText, Check, Truck, CheckSquare, Coins, Ban, Plus } from 'lucide-react';
 
 export default function AdminOrdersPage() {
-  const { user } = useAdminAuth();
+  const { user, loading: authLoading } = useAdminAuth();
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,6 +22,7 @@ export default function AdminOrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   const loadOrders = async () => {
+    if (!user) return;
     setLoading(true);
     setError(false);
     try {
@@ -36,8 +37,12 @@ export default function AdminOrdersPage() {
   };
 
   useEffect(() => {
-    loadOrders();
-  }, []);
+    if (!authLoading && user) {
+      loadOrders();
+    } else if (!authLoading && !user) {
+      setLoading(false);
+    }
+  }, [authLoading, user]);
 
   const openDetailModal = (o: Order) => {
     setSelectedOrder(o);

@@ -7,7 +7,10 @@ import { useRouter } from 'next/navigation';
 import { getArtworkBySlug, getArtworks } from '@/lib/firebase/services/artworks';
 import { Artwork } from '@/lib/types';
 import { useCart } from '@/lib/context/CartContext';
-import { ArrowLeft, Check, ShoppingCart, HelpCircle, ShieldAlert, Heart } from 'lucide-react';
+import { useCustomerAuth } from '@/lib/context/CustomerAuthContext';
+import { useToast } from '@/lib/context/ToastContext';
+import { addToWishlist, removeFromWishlist, isInWishlist } from '@/lib/firebase/services/wishlist';
+import { ArrowLeft, Check, ShoppingCart, HelpCircle, ShieldAlert, Heart, Loader2 } from 'lucide-react';
 import Footer from '@/components/Footer';
 
 interface PageProps {
@@ -17,7 +20,9 @@ interface PageProps {
 export default function ArtworkDetailPage({ params }: PageProps) {
   const router = useRouter();
   const { slug } = use(params);
+  const { user } = useCustomerAuth();
   const { addToCart, isInCart } = useCart();
+  const { showToast } = useToast();
 
   const [artwork, setArtwork] = useState<Artwork | null>(null);
   const [related, setRelated] = useState<Artwork[]>([]);
@@ -25,6 +30,8 @@ export default function ArtworkDetailPage({ params }: PageProps) {
   const [error, setError] = useState(false);
   const [activeImageIdx, setActiveImageIdx] = useState(0);
   const [copied, setCopied] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     const loadDetails = async () => {
@@ -40,6 +47,11 @@ export default function ArtworkDetailPage({ params }: PageProps) {
             .filter((a) => a.id !== item.id && (a.categoryId === item.categoryId || a.medium === item.medium))
             .slice(0, 3);
           setRelated(filtered);
+
+          if (user) {
+            const saved = await isInWishlist(user.uid, item.id);
+            setIsSaved(saved);
+          }
         } else {
           setArtwork(null);
         }
@@ -51,7 +63,43 @@ export default function ArtworkDetailPage({ params }: PageProps) {
       }
     };
     loadDetails();
-  }, [slug]);
+  }, [slug, user]);
+
+  const handleToggleSave = async () => {
+    if (!artwork) return;
+    if (!user) {
+      showToast('Please sign in to save artworks to your wishlist.', 'warning', {
+        action: {
+          label: 'Sign In',
+          onClick: () => router.push(`/account/login?redirect=${encodeURIComponent(`/portfolio/${artwork.slug}`)}`),
+        },
+      });
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      if (isSaved) {
+        await removeFromWishlist(user.uid, artwork.id);
+        setIsSaved(false);
+        showToast(`"${artwork.title}" removed from your saved artworks.`, 'info');
+      } else {
+        await addToWishlist(user.uid, {
+          artworkId: artwork.id,
+          title: artwork.title,
+          price: artwork.price,
+          image: artwork.images[0] || '',
+        });
+        setIsSaved(true);
+        showToast(`"${artwork.title}" saved to your wishlist!`, 'success');
+      }
+    } catch (err: any) {
+      console.error('Error saving artwork:', err);
+      showToast(err?.message || 'Failed to update saved artwork.', 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -197,7 +245,7 @@ export default function ArtworkDetailPage({ params }: PageProps) {
               )}
             </div>
 
-            {/* Purchase CTA controls */}
+            {/* Purchase & Wishlist CTA controls */}
             {isAvailable ? (
               <div className="flex flex-col gap-3">
                 <div className="grid grid-cols-2 gap-3.5">
@@ -223,6 +271,24 @@ export default function ArtworkDetailPage({ params }: PageProps) {
                     Buy Artwork
                   </button>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={handleToggleSave}
+                  disabled={isSaving}
+                  className={`w-full py-3 rounded-full font-mono text-xs uppercase tracking-widest font-semibold border transition-all flex items-center justify-center gap-2 cursor-pointer
+                    ${isSaved
+                      ? 'bg-pink-50 border-pink-200 text-pink-700 hover:bg-pink-100'
+                      : 'border-[var(--border-soft)] hover:border-[var(--accent-purple)] text-[var(--foreground)] hover:text-[var(--accent-purple)] bg-white'
+                    }`}
+                >
+                  {isSaving ? (
+                    <Loader2 size={14} className="animate-spin text-[var(--accent-purple)]" />
+                  ) : (
+                    <Heart size={14} className={isSaved ? 'fill-pink-500 text-pink-500' : ''} />
+                  )}
+                  <span>{isSaved ? 'Saved to Wishlist' : 'Save Artwork'}</span>
+                </button>
               </div>
             ) : (
               <div className="flex flex-col gap-3">
@@ -233,6 +299,23 @@ export default function ArtworkDetailPage({ params }: PageProps) {
                   <HelpCircle size={14} />
                   Enquire to Purchase
                 </Link>
+                <button
+                  type="button"
+                  onClick={handleToggleSave}
+                  disabled={isSaving}
+                  className={`w-full py-3 rounded-full font-mono text-xs uppercase tracking-widest font-semibold border transition-all flex items-center justify-center gap-2 cursor-pointer
+                    ${isSaved
+                      ? 'bg-pink-50 border-pink-200 text-pink-700 hover:bg-pink-100'
+                      : 'border-[var(--border-soft)] hover:border-[var(--accent-purple)] text-[var(--foreground)] hover:text-[var(--accent-purple)] bg-white'
+                    }`}
+                >
+                  {isSaving ? (
+                    <Loader2 size={14} className="animate-spin text-[var(--accent-purple)]" />
+                  ) : (
+                    <Heart size={14} className={isSaved ? 'fill-pink-500 text-pink-500' : ''} />
+                  )}
+                  <span>{isSaved ? 'Saved to Wishlist' : 'Save Artwork'}</span>
+                </button>
                 <p className="text-[10px] font-sans text-center text-[var(--text-muted)] leading-relaxed">
                   This work is sold or display only. We accept corporate commissions and residential requests similar to this piece.
                 </p>

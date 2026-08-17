@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useCustomerAuth } from '@/lib/context/CustomerAuthContext';
 import { useCart } from '@/lib/context/CartContext';
+import { useToast } from '@/lib/context/ToastContext';
 import { getWishlist, removeFromWishlist } from '@/lib/firebase/services/wishlist';
 import { WishlistItem } from '@/lib/types';
 import { Heart, ShoppingCart, Trash2, Loader2, ArrowRight } from 'lucide-react';
@@ -13,6 +14,7 @@ import Footer from '@/components/Footer';
 export default function WishlistPage() {
   const { user } = useCustomerAuth();
   const { addToCart, isInCart } = useCart();
+  const { showToast } = useToast();
   const [items, setItems] = useState<WishlistItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [removingId, setRemovingId] = useState<string | null>(null);
@@ -24,24 +26,27 @@ export default function WishlistPage() {
       try {
         const wishlist = await getWishlist(user.uid);
         setItems(wishlist);
-      } catch (e) {
+      } catch (e: any) {
         console.error('Error fetching wishlist:', e);
+        showToast(e?.message || 'Failed to load your saved artworks.', 'error');
       } finally {
         setLoading(false);
       }
     };
 
     fetchWishlist();
-  }, [user]);
+  }, [user, showToast]);
 
-  const handleRemove = async (artworkId: string) => {
+  const handleRemove = async (artworkId: string, title?: string) => {
     if (!user) return;
     setRemovingId(artworkId);
     try {
       await removeFromWishlist(user.uid, artworkId);
       setItems((prev) => prev.filter((item) => item.artworkId !== artworkId));
-    } catch (e) {
+      showToast(`Removed "${title || 'Artwork'}" from your saved artworks.`, 'info');
+    } catch (e: any) {
       console.error('Error removing from wishlist:', e);
+      showToast(e?.message || 'Failed to remove artwork from saved list.', 'error');
     } finally {
       setRemovingId(null);
     }
@@ -54,6 +59,7 @@ export default function WishlistPage() {
       price: item.price,
       images: [item.image],
     } as Parameters<typeof addToCart>[0]);
+    showToast(`Added "${item.title}" to your cart.`, 'success');
   };
 
   if (loading) {
@@ -137,7 +143,7 @@ export default function WishlistPage() {
                       </button>
                     )}
                     <button
-                      onClick={() => handleRemove(item.artworkId)}
+                      onClick={() => handleRemove(item.artworkId, item.title)}
                       disabled={removingId === item.artworkId}
                       className="p-2.5 rounded-full border border-[var(--border-soft)] hover:bg-red-50 hover:border-red-200 hover:text-red-500 text-[var(--text-muted)] transition-all cursor-pointer disabled:opacity-50"
                       title="Remove from wishlist"

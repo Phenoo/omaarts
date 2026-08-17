@@ -6,6 +6,7 @@ import NavigationOverlay from '../components/NavigationOverlay';
 import SiteStructuredData from '@/components/SiteStructuredData';
 import { CartProvider } from '@/lib/context/CartContext';
 import { CustomerAuthProvider } from '@/lib/context/CustomerAuthContext';
+import { ToastProvider } from '@/lib/context/ToastContext';
 import { SITE } from '@/lib/site';
 
 export const metadata: Metadata = {
@@ -54,13 +55,15 @@ export default function RootLayout({
     <html lang="en">
       <body className="antialiased">
         <CustomerAuthProvider>
-      <CartProvider>
-        <SmoothScroller>
-              <SiteStructuredData />
-              <NavigationOverlay />
-              <a href="#main-content" className="skip-link">Skip to content</a>
-              {children}
-            </SmoothScroller>
+          <CartProvider>
+            <ToastProvider>
+              <SmoothScroller>
+                <SiteStructuredData />
+                <NavigationOverlay />
+                <a href="#main-content" className="skip-link">Skip to content</a>
+                {children}
+              </SmoothScroller>
+            </ToastProvider>
           </CartProvider>
         </CustomerAuthProvider>
       </body>

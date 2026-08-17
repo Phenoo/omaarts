@@ -1,15 +1,18 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { getDashboardStats, DashboardStats } from '@/lib/firebase/services/analytics';
+import { useAdminAuth } from '@/lib/context/AdminAuthContext';
 import { Coins, Calendar, ShoppingBag, Palette, TrendingUp, Sparkles, RefreshCw } from 'lucide-react';
 
 export default function AdminDashboardPage() {
+  const { user, loading: authLoading } = useAdminAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
+    if (!user) return;
     setLoading(true);
     setError(false);
     try {
@@ -21,11 +24,15 @@ export default function AdminDashboardPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
-    fetchStats();
-  }, []);
+    if (!authLoading && user) {
+      fetchStats();
+    } else if (!authLoading && !user) {
+      setLoading(false);
+    }
+  }, [authLoading, user, fetchStats]);
 
   if (loading) {
     return (

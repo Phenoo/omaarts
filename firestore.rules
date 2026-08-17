@@ -2,17 +2,21 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     // Helper functions for user authorization
+    function userDocExists() {
+      return request.auth != null && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
     function getUserData() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
     
     function isAdmin() {
-      return request.auth != null && 
+      return userDocExists() && 
         (getUserData().role == 'admin' || getUserData().role == 'super_admin' || getUserData().role == 'super_Admin');
     }
     
     function isStaff() {
-      return request.auth != null && 
+      return userDocExists() && 
         (getUserData().role == 'admin' || getUserData().role == 'super_admin' || getUserData().role == 'super_Admin' || getUserData().role == 'staff');
     }
 
@@ -128,7 +132,7 @@ service cloud.firestore {
     // Security Audit logs rules
     match /auditLogs/{logId} {
       allow read: if isStaff();
-      allow write: if isAdmin();
+      allow write: if isStaff();
     }
   }
 }

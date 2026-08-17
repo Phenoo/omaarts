@@ -7,7 +7,7 @@ import { Sale } from '@/lib/types';
 import { Coins, Plus, Download, RefreshCw, FileText, CheckCircle2 } from 'lucide-react';
 
 export default function AdminSalesPage() {
-  const { user } = useAdminAuth();
+  const { user, loading: authLoading } = useAdminAuth();
 
   const [sales, setSales] = useState<Sale[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,6 +31,7 @@ export default function AdminSalesPage() {
   const [success, setSuccess] = useState(false);
 
   const loadSales = async () => {
+    if (!user) return;
     setLoading(true);
     setError(false);
     try {
@@ -45,8 +46,12 @@ export default function AdminSalesPage() {
   };
 
   useEffect(() => {
-    loadSales();
-  }, []);
+    if (!authLoading && user) {
+      loadSales();
+    } else if (!authLoading && !user) {
+      setLoading(false);
+    }
+  }, [authLoading, user]);
 
   const handleExportCSV = () => {
     if (sales.length === 0) return;
