@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import Footer from '@/components/Footer';
 import ExperienceBookingTabs from '@/components/experiences/ExperienceBookingTabs';
+import FloatingBookButton from '@/components/experiences/FloatingBookButton';
 import JsonLd from '@/components/JsonLd';
 import { getPublicExperience, getPublicExperiences } from '@/lib/public-data';
 import { absoluteUrl, formatNaira, SITE } from '@/lib/site';
@@ -52,9 +53,7 @@ export default async function ExperienceDetailPage({ params }: { params: Promise
         </div>
         {related.length > 0 && <section className="related-section"><div className="section-heading"><p className="eyebrow">More from the studio</p><h2>You might also enjoy</h2></div><div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{related.map((item) => <Link key={item.id} href={`/experiences/${item.slug}`} className="experience-card"><div className="experience-card__image"><Image src={item.images[0] || '/images/studio/IMG_0890.png'} alt={item.name} fill sizes="30vw" className="object-cover" /></div><h3 className="mt-4 font-serif text-2xl">{item.name}</h3></Link>)}</div></section>}
       </div>
-      <a href="#booking-form" className="fixed bottom-4 left-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 rounded-full bg-[var(--accent-purple)] px-6 py-4 text-center font-mono text-xs uppercase tracking-[0.14em] text-white font-black shadow-[0_12px_30px_rgba(58,30,112,0.3)] transition-colors hover:bg-[var(--accent-orange)]">
-        Book this experience
-      </a>
+      <FloatingBookButton />
       <Footer />
     </main>
   );
