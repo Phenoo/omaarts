@@ -2,13 +2,13 @@
 
 import React, { useEffect, useState } from 'react';
 import { getSiteSettings, saveSiteSettings, getBlockedDates, addBlockedDate, removeBlockedDate, SiteSettings } from '@/lib/firebase/services/settings';
-import { Settings, Calendar, ShieldAlert, RefreshCw, Plus, Trash2, CheckCircle2 } from 'lucide-react';
+import { Calendar, ShieldAlert, Trash2, CheckCircle2 } from 'lucide-react';
+import { BlockedDate } from '@/lib/types';
 
 export default function AdminSettingsPage() {
-  const [settings, setSettings] = useState<SiteSettings | null>(null);
-  const [blockedDates, setBlockedDates] = useState<(any)[]>([]);
+  const [, setSettings] = useState<SiteSettings | null>(null);
+  const [blockedDates, setBlockedDates] = useState<(BlockedDate & { id: string })[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
 
   // Form sites
   const [damagePolicy, setDamagePolicy] = useState('');
@@ -30,7 +30,6 @@ export default function AdminSettingsPage() {
 
   const loadData = async () => {
     setLoading(true);
-    setError(false);
     try {
       const siteSet = await getSiteSettings();
       setSettings(siteSet);
@@ -47,7 +46,6 @@ export default function AdminSettingsPage() {
       setBlockedDates(blockData);
     } catch (e) {
       console.error(e);
-      setError(true);
     } finally {
       setLoading(false);
     }
@@ -306,7 +304,7 @@ export default function AdminSettingsPage() {
 
             {!isFullClosure && (
               <div className="flex flex-col gap-1">
-                <label className="text-[10px] text-gray-400 uppercase">Hourly Slots (Comma-separated, E.g. "12:00, 14:00")</label>
+                <label className="text-[10px] text-gray-400 uppercase">Hourly Slots (Comma-separated, E.g. &quot;12:00, 14:00&quot;)</label>
                 <input
                   type="text"
                   placeholder="11:00, 13:00, 16:00"

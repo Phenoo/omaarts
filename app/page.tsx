@@ -3,11 +3,11 @@ import Link from 'next/link';
 import HeroCanvas from '../components/home/HeroCanvas';
 import FeaturedActivities from '../components/home/FeaturedActivities';
 import Footer from '../components/Footer';
-import { getPublicArtworks } from '@/lib/public-data';
+import { getPublicArtworks, getPublicExperiences } from '@/lib/public-data';
 import { STUDIO_IMAGES } from '@/lib/studioImages';
 import { createPageMetadata } from '@/lib/seo';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 export const metadata = createPageMetadata({
   title: 'Contemporary Artist and Creative Studio in Awka',
@@ -71,7 +71,10 @@ const PRIVATE_EVENT_STEPS = [
 ];
 
 export default async function Home() {
-  const artworks = await getPublicArtworks();
+  const [artworks, experiences] = await Promise.all([
+    getPublicArtworks(),
+    getPublicExperiences(),
+  ]);
   const featuredWorks = artworks.slice(0, 3);
 
   return (
@@ -253,7 +256,7 @@ export default async function Home() {
           </div>
         </section>
 
-        <FeaturedActivities />
+        <FeaturedActivities experiences={experiences} />
 
         <section className="py-20 md:py-24" aria-labelledby="studio-gallery-heading">
           <div className="max-w-[90vw] mx-auto">

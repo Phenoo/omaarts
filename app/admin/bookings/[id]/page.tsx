@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import React, { useEffect, useState, useCallback } from 'react';
+import { useParams } from 'next/navigation';
 import { getBooking, updateBookingStatus } from '@/lib/firebase/services/adminOperations';
 import { useAdminAuth } from '@/lib/context/AdminAuthContext';
 import { Booking } from '@/lib/types';
@@ -13,7 +13,6 @@ import Link from 'next/link';
 export default function AdminBookingManagePage() {
   const { user } = useAdminAuth();
   const params = useParams();
-  const router = useRouter();
   const id = params?.id as string;
   
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
@@ -26,7 +25,7 @@ export default function AdminBookingManagePage() {
   const [rescheduleDate, setRescheduleDate] = useState('');
   const [rescheduleTime, setRescheduleTime] = useState('');
 
-  const loadBooking = async () => {
+  const loadBooking = useCallback(async () => {
     if (!id) return;
     setLoading(true);
     setError(false);
@@ -42,11 +41,11 @@ export default function AdminBookingManagePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     loadBooking();
-  }, [id]);
+  }, [loadBooking]);
 
   const handleUpdateStatus = async (status: Booking['bookingStatus']) => {
     if (!selectedBooking) return;

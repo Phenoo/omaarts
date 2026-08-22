@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { getArtworks, createArtwork, updateArtwork, archiveArtwork, getArtworkCategories } from '@/lib/firebase/services/artworks';
+import { getArtworks, archiveArtwork } from '@/lib/firebase/services/artworks';
 import { useAdminAuth } from '@/lib/context/AdminAuthContext';
-import { Artwork, Category } from '@/lib/types';
+import { Artwork } from '@/lib/types';
 import { Palette, Plus, Edit, Archive, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 
@@ -11,7 +11,6 @@ export default function AdminArtworksPage() {
   const { user } = useAdminAuth();
 
   const [artworks, setArtworks] = useState<Artwork[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -23,8 +22,6 @@ export default function AdminArtworksPage() {
     try {
       const artData = await getArtworks();
       setArtworks(artData);
-      const catData = await getArtworkCategories();
-      setCategories(catData);
     } catch (e) {
       console.error(e);
       setError(true);
@@ -105,6 +102,7 @@ export default function AdminArtworksPage() {
               {/* Thumbnail / Header */}
               <div>
                 <div className="relative aspect-[4/3] bg-gray-100 border-b border-[var(--border-soft)]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={art.images?.[0] || '/images/artist-studio.png'}
                     alt={art.title}

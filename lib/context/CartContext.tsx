@@ -1,11 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { Artwork } from '../types';
-import { db } from '../firebase/config';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { onAuthStateChanged, User } from 'firebase/auth';
-import { auth } from '../firebase/config';
+import type { Artwork } from '../types';
+import type { User } from 'firebase/auth';
 import { firebaseErrorDetails } from '@/lib/firebase/errorDetails';
 
 interface CartItem {
@@ -62,6 +59,10 @@ function mergeCarts(localCart: CartItem[], firestoreCart: CartItem[]): CartItem[
 async function loadFirestoreCart(uid: string): Promise<CartItem[]> {
   const path = `users/${uid}/cart/items`;
   try {
+    const [{ db }, { doc, getDoc }] = await Promise.all([
+      import('../firebase/config'),
+      import('firebase/firestore'),
+    ]);
     const ref = doc(db, 'users', uid, 'cart', 'items');
     const snap = await getDoc(ref);
     if (snap.exists()) {
@@ -71,7 +72,6 @@ async function loadFirestoreCart(uid: string): Promise<CartItem[]> {
     console.error('[Cart] Failed to load Firestore cart', {
       uid,
       path,
-      projectId: db.app.options.projectId,
       ...firebaseErrorDetails(e),
     });
   }
@@ -81,6 +81,10 @@ async function loadFirestoreCart(uid: string): Promise<CartItem[]> {
 async function saveFirestoreCart(uid: string, cart: CartItem[]) {
   const path = `users/${uid}/cart/items`;
   try {
+    const [{ db }, { doc, setDoc }] = await Promise.all([
+      import('../firebase/config'),
+      import('firebase/firestore'),
+    ]);
     const ref = doc(db, 'users', uid, 'cart', 'items');
     await setDoc(ref, { items: cart, updatedAt: new Date().toISOString() });
   } catch (e) {
@@ -88,7 +92,6 @@ async function saveFirestoreCart(uid: string, cart: CartItem[]) {
       uid,
       path,
       itemCount: cart.length,
-      projectId: db.app.options.projectId,
       ...firebaseErrorDetails(e),
     });
   }
@@ -102,33 +105,47 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   // Track auth state
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setCurrentUser(user);
-      if (!user) {
-        setSyncFirestoreCart(false);
-        return;
-      }
+    let active = true;
+    let unsubscribe: (() => void) | undefined;
 
-      try {
-        const profileSnap = await getDoc(doc(db, 'users', user.uid));
-        const role = profileSnap.exists() ? (profileSnap.data().role as string | undefined) : undefined;
-        const isCustomer = role === 'customer';
-        setSyncFirestoreCart(isCustomer);
-        console.info('[Cart] Account cart sync mode', {
-          uid: user.uid,
-          role: role ?? 'missing-profile',
-          syncFirestoreCart: isCustomer,
-        });
-      } catch (error) {
-        setSyncFirestoreCart(false);
-        console.error('[Cart] Failed to resolve account role for cart sync', {
-          uid: user.uid,
-          path: `users/${user.uid}`,
-          ...firebaseErrorDetails(error),
-        });
-      }
-    });
-    return () => unsubscribe();
+    const initializeAuth = async () => {
+      const [{ auth, db }, { onAuthStateChanged }, { doc, getDoc }] = await Promise.all([
+        import('../firebase/config'),
+        import('firebase/auth'),
+        import('firebase/firestore'),
+      ]);
+
+      if (!active) return;
+
+      unsubscribe = onAuthStateChanged(auth, async (user) => {
+        if (!active) return;
+        setCurrentUser(user);
+        if (!user) {
+          setSyncFirestoreCart(false);
+          return;
+        }
+
+        try {
+          const profileSnap = await getDoc(doc(db, 'users', user.uid));
+          const role = profileSnap.exists() ? (profileSnap.data().role as string | undefined) : undefined;
+          const isCustomer = role === 'customer';
+          if (active) setSyncFirestoreCart(isCustomer);
+        } catch (error) {
+          if (active) setSyncFirestoreCart(false);
+          console.error('[Cart] Failed to resolve account role for cart sync', {
+            uid: user.uid,
+            path: `users/${user.uid}`,
+            ...firebaseErrorDetails(error),
+          });
+        }
+      });
+    };
+
+    void initializeAuth();
+    return () => {
+      active = false;
+      unsubscribe?.();
+    };
   }, []);
 
   // Load cart on mount / auth change

@@ -24,9 +24,6 @@ export default function EventsTicker() {
     // Simple infinite marquee
     const track = trackRef.current;
     
-    const totalWidth = track.scrollWidth;
-    const parentWidth = track.parentElement?.offsetWidth || 0;
-    
     // If content is not wide enough, we might need duplication, but assuming it is for now or just standard marquee
     // Let's create a basic loop
     

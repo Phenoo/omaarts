@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { getBookings, updateBookingStatus } from '@/lib/firebase/services/adminOperations';
+import React, { useEffect, useState, useCallback } from 'react';
+import { getBookings } from '@/lib/firebase/services/adminOperations';
 import { useAdminAuth } from '@/lib/context/AdminAuthContext';
 import { Booking } from '@/lib/types';
-import { db } from '@/lib/firebase/config';
-import { Calendar, Search, SlidersHorizontal, RefreshCw } from 'lucide-react';
+import { Calendar, Search, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminBookingsPage() {
@@ -13,7 +12,6 @@ export default function AdminBookingsPage() {
   
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
 
   // Filters state
   const [searchTerm, setSearchTerm] = useState('');
@@ -21,20 +19,18 @@ export default function AdminBookingsPage() {
   const [paymentFilter, setPaymentFilter] = useState<'all' | 'PENDING' | 'PAID' | 'FAILED'>('all');
   const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'upcoming' | 'past'>('all');
 
-  const loadBookings = async () => {
+  const loadBookings = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    setError(false);
     try {
       const data = await getBookings();
       setBookings(data);
     } catch (e) {
       console.error(e);
-      setError(true);
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -42,7 +38,7 @@ export default function AdminBookingsPage() {
     } else if (!authLoading && !user) {
       setLoading(false);
     }
-  }, [authLoading, user]);
+  }, [authLoading, user, loadBookings]);
 
 
 
@@ -105,7 +101,7 @@ export default function AdminBookingsPage() {
             <span className="text-[10px] text-gray-400 uppercase mr-1">Status:</span>
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as any)}
+              onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
               className="w-full bg-transparent py-2 focus:outline-none cursor-pointer text-xs"
             >
               <option value="all">All Bookings</option>
@@ -121,7 +117,7 @@ export default function AdminBookingsPage() {
             <span className="text-[10px] text-gray-400 uppercase mr-1">Paid:</span>
             <select
               value={paymentFilter}
-              onChange={(e) => setPaymentFilter(e.target.value as any)}
+              onChange={(e) => setPaymentFilter(e.target.value as typeof paymentFilter)}
               className="w-full bg-transparent py-2 focus:outline-none cursor-pointer text-xs"
             >
               <option value="all">All Payments</option>
@@ -136,7 +132,7 @@ export default function AdminBookingsPage() {
             <span className="text-[10px] text-gray-400 uppercase mr-1">Time:</span>
             <select
               value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value as any)}
+              onChange={(e) => setDateFilter(e.target.value as typeof dateFilter)}
               className="w-full bg-transparent py-2 focus:outline-none cursor-pointer text-xs"
             >
               <option value="all">All Time</option>

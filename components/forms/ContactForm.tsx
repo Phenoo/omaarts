@@ -9,12 +9,14 @@ export default function ContactForm() {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setStatus('sending'); setError('');
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     try {
       const response = await fetch('/api/enquiries', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...Object.fromEntries(form.entries()), type: 'contact' }) });
       const data = await response.json();
       if (!response.ok || !data.success) throw new Error(data.error || 'Please try again.');
-      setReference(data.reference); setStatus('success'); event.currentTarget.reset();
+      formElement?.reset();
+      setReference(data.reference); setStatus('success');
     } catch (submissionError) { setError(submissionError instanceof Error ? submissionError.message : 'Please try again.'); setStatus('error'); }
   }
 

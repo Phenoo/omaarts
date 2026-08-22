@@ -2,6 +2,7 @@ import { INITIAL_ACTIVITIES } from '@/lib/firebase/services/seedData';
 import { getAdminContext } from '@/lib/firebase/admin';
 import { Activity, Artwork } from '@/lib/types';
 import { withActivityImages } from '@/lib/activityImages';
+import { unstable_cache } from 'next/cache';
 
 export type PublicArtwork = Artwork & {
   availabilityLabel: string;
@@ -40,7 +41,7 @@ function normalizeArtwork(id: string, data: Record<string, unknown>): PublicArtw
   };
 }
 
-async function getFirebaseArtworks(): Promise<PublicArtwork[]> {
+const getFirebaseArtworks = unstable_cache(async (): Promise<PublicArtwork[]> => {
   const { adminDb, isConfigured } = getAdminContext();
   if (!isConfigured || !adminDb) return [];
 
@@ -55,9 +56,9 @@ async function getFirebaseArtworks(): Promise<PublicArtwork[]> {
     console.error('Failed to fetch artworks from Firebase backend:', error);
     return [];
   }
-}
+}, ['public-artworks'], { revalidate: 300 });
 
-async function getFirebaseExperiences(): Promise<PublicExperience[] | null> {
+const getFirebaseExperiences = unstable_cache(async (): Promise<PublicExperience[] | null> => {
   const { adminDb, isConfigured } = getAdminContext();
   if (!isConfigured || !adminDb) return null;
 
@@ -71,7 +72,7 @@ async function getFirebaseExperiences(): Promise<PublicExperience[] | null> {
     console.error('Public experience read failed; using safe fallback data.', error);
     return null;
   }
-}
+}, ['public-experiences'], { revalidate: 300 });
 
 export async function getPublicArtworks(): Promise<PublicArtwork[]> {
   return await getFirebaseArtworks();

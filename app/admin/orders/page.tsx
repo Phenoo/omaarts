@@ -1,17 +1,16 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { getOrders, updateOrderStatus } from '@/lib/firebase/services/adminOperations';
 import { useAdminAuth } from '@/lib/context/AdminAuthContext';
 import { Order, FulfilmentStatus, PaymentStatus } from '@/lib/types';
-import { Search, ShoppingBag, RefreshCw, FileText, Check, Truck, CheckSquare, Coins, Ban, Plus } from 'lucide-react';
+import { Search, ShoppingBag, RefreshCw, Check, Truck, CheckSquare, Coins, Ban, Plus } from 'lucide-react';
 
 export default function AdminOrdersPage() {
   const { user, loading: authLoading } = useAdminAuth();
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
 
   // Filters state
   const [searchTerm, setSearchTerm] = useState('');
@@ -21,20 +20,18 @@ export default function AdminOrdersPage() {
   // Detail Modal
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
-  const loadOrders = async () => {
+  const loadOrders = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    setError(false);
     try {
       const data = await getOrders();
       setOrders(data);
     } catch (e) {
       console.error(e);
-      setError(true);
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -42,7 +39,7 @@ export default function AdminOrdersPage() {
     } else if (!authLoading && !user) {
       setLoading(false);
     }
-  }, [authLoading, user]);
+  }, [authLoading, user, loadOrders]);
 
   const openDetailModal = (o: Order) => {
     setSelectedOrder(o);
@@ -138,7 +135,7 @@ export default function AdminOrdersPage() {
             <span className="text-[10px] text-gray-400 uppercase mr-1">Fulfill:</span>
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as any)}
+              onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
               className="w-full bg-transparent py-2 focus:outline-none cursor-pointer text-xs"
             >
               <option value="all">All Orders</option>
@@ -156,7 +153,7 @@ export default function AdminOrdersPage() {
             <span className="text-[10px] text-gray-400 uppercase mr-1">Paid:</span>
             <select
               value={paymentFilter}
-              onChange={(e) => setPaymentFilter(e.target.value as any)}
+              onChange={(e) => setPaymentFilter(e.target.value as typeof paymentFilter)}
               className="w-full bg-transparent py-2 focus:outline-none cursor-pointer text-xs"
             >
               <option value="all">All Payments</option>

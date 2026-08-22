@@ -3,17 +3,10 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { icons, Music2, ShoppingCart, UserCircle, Users } from 'lucide-react';
+import { MessageCircle, Music2, ShoppingCart, UserCircle } from 'lucide-react';
 import { useCart } from '@/lib/context/CartContext';
 import { useCustomerAuth } from '@/lib/context/CustomerAuthContext';
 import { SITE } from '@/lib/site';
-import { FaWhatsapp } from "react-icons/fa";
-
-import { AiOutlineInstagram } from "react-icons/ai";
-import { IoLogoTiktok } from "react-icons/io5";
-
-import { CiFacebook } from "react-icons/ci";
-
 const LINKS = [
   { label: 'Home', href: '/' },
   { label: 'Shop Art', href: '/art' },
@@ -24,10 +17,10 @@ const LINKS = [
 ];
 
 const SOCIAL_LINKS = [
-  { label: 'Instagram', href: SITE.social.instagram, icon: AiOutlineInstagram },
-  { label: 'TikTok', href: SITE.social.tiktok, icon: IoLogoTiktok },
-  { label: 'Facebook', href: SITE.social.facebook, icon: CiFacebook },
-  { label: 'WhatsApp', href: SITE.whatsappHref, icon: FaWhatsapp },
+  { label: 'Instagram', href: SITE.social.instagram, icon: 'IG' },
+  { label: 'TikTok', href: SITE.social.tiktok, icon: Music2 },
+  { label: 'Facebook', href: SITE.social.facebook, icon: 'F' },
+  { label: 'WhatsApp', href: SITE.whatsappHref, icon: MessageCircle },
 
 ];
 
@@ -111,7 +104,7 @@ export default function NavigationOverlay() {
       <div id="site-menu" className="site-menu" role="dialog" aria-modal="true" aria-label="Site navigation" onClick={(event) => event.stopPropagation()}>
 
         <nav aria-label="Menu">{LINKS.map((link, index) => <Link key={link.href} href={link.href} ref={index === 0 ? firstLinkRef : undefined}>{link.label}</Link>)}</nav><div className="site-menu__footer"><p>Original works, studio experiences, and private events in Awka.</p>
-          <div className="site-menu__socials" aria-label="Social media"><span className="eyebrow">Follow the studio</span><div className="site-menu__social-links">{SOCIAL_LINKS.map(({ label, href, icon: Icon }) => <a key={label} href={href} target="_blank" rel="noreferrer" aria-label={`Follow Artsy by Oma on ${label}`}><Icon aria-hidden="true" size={20} strokeWidth={1.8} /></a>)}</div></div></div></div></div>}
+          <div className="site-menu__socials" aria-label="Social media"><span className="eyebrow">Follow the studio</span><div className="site-menu__social-links">{SOCIAL_LINKS.map(({ label, href, icon: Icon }) => <a key={label} href={href} target="_blank" rel="noreferrer" aria-label={`Follow Artsy by Oma on ${label}`}>{typeof Icon === 'string' ? <span aria-hidden="true" className="font-mono text-[10px] font-bold">{Icon}</span> : <Icon aria-hidden="true" size={20} strokeWidth={1.8} />}</a>)}</div></div></div></div></div>}
   </>;
 }
 

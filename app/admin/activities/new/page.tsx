@@ -159,9 +159,9 @@ export default function AddActivityPage() {
       const adminUid = user?.uid || 'anonymous';
       await createActivity(payload, adminUid);
       router.push('/admin/activities');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setSubmitError(err.message || 'An error occurred while saving the activity.');
+      setSubmitError(err instanceof Error ? err.message : 'An error occurred while saving the activity.');
       setIsSubmitting(false);
     }
   };
@@ -200,6 +200,7 @@ export default function AddActivityPage() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {images.map((img, idx) => (
                   <div key={idx} className="relative aspect-square border border-[var(--border-soft)] rounded-xl overflow-hidden group shadow-sm bg-white">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={img} alt="Preview" className="w-full h-full object-cover" />
                     <button
                       type="button"

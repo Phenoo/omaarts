@@ -1,12 +1,8 @@
 'use client';
 
 import { useEffect, useRef } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/all";
 import Image from "next/image";
 import Link from "next/link";
-
-gsap.registerPlugin(ScrollTrigger);
 
 export default function HeroCanvas() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -15,26 +11,38 @@ export default function HeroCanvas() {
 
   useEffect(() => {
     if (!containerRef.current || !imageRef.current || !textRef.current) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: containerRef.current,
-        start: "top top",
-        end: "bottom top",
-        scrub: true,
-        pin: true,
-      },
+    let disposed = false;
+    let tl: {
+      kill: () => void;
+      fromTo: (target: HTMLImageElement, from: object, to: object) => {
+        to: (target: HTMLDivElement, vars: object, position?: number) => void;
+      };
+      to: (target: HTMLDivElement, vars: object, position?: number) => void;
+    } | null = null;
+
+    Promise.all([import('gsap'), import('gsap/ScrollTrigger')]).then(([{ default: gsap }, { default: ScrollTrigger }]) => {
+      if (disposed || !containerRef.current || !imageRef.current || !textRef.current) return;
+
+      gsap.registerPlugin(ScrollTrigger);
+      tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: containerRef.current,
+          start: "top top",
+          end: "bottom top",
+          scrub: true,
+          pin: true,
+        },
+      });
+
+      tl.fromTo(imageRef.current, { scale: 1 }, { scale: 1.08, ease: "none" });
+      tl.to(textRef.current, { opacity: 0, y: -80, ease: "power2.in" }, 0);
     });
 
-    tl.fromTo(imageRef.current, { scale: 1 }, { scale: 1.08, ease: "none" });
-    tl.to(
-      textRef.current,
-      { opacity: 0, y: -80, ease: "power2.in" },
-      0
-    );
-
     return () => {
-      tl.kill();
+      disposed = true;
+      tl?.kill();
     };
   }, []);
 
@@ -51,6 +59,8 @@ export default function HeroCanvas() {
             src="/images/artist-portrait.jpg"
             alt="Oma Achebe Portrait"
             fill
+            sizes="100vw"
+            quality={70}
             className="object-cover object-[center_18%]"
             priority
           />
@@ -71,13 +81,13 @@ export default function HeroCanvas() {
 
         <div className="mt-8 flex gap-4 pointer-events-auto">
           <Link
-            href="/activities"
+            href="/experiences"
             className="px-8 py-3.5 rounded-full bg-[var(--accent-purple)] text-white hover:bg-[var(--accent-orange)] transition-colors font-mono text-xs uppercase tracking-widest shadow-lg cursor-pointer font-bold"
           >
             Book an Experience
           </Link>
           <Link
-            href="/portfolio"
+            href="/art"
             className="px-8 py-3.5 rounded-full backdrop-blur-sm border border-white/35 text-black bg-white text-[var(--foreground)] transition-all font-mono text-xs uppercase tracking-widest shadow-lg cursor-pointer"
           >
             Explore Art

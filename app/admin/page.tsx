@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { getDashboardStats, DashboardStats } from '@/lib/firebase/services/analytics';
 import { useAdminAuth } from '@/lib/context/AdminAuthContext';
-import { Coins, Calendar, ShoppingBag, Palette, TrendingUp, Sparkles, RefreshCw } from 'lucide-react';
+import { Coins, Calendar, ShoppingBag, TrendingUp, RefreshCw } from 'lucide-react';
 
 export default function AdminDashboardPage() {
   const { user, loading: authLoading } = useAdminAuth();

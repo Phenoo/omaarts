@@ -1,6 +1,6 @@
 import { auth, db } from '../config';
 import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
-import { Booking, Order, Sale, Artwork } from '../../types';
+import { Booking, Sale, Artwork } from '../../types';
 import { firebaseErrorDetails } from '@/lib/firebase/errorDetails';
 
 export interface DashboardStats {

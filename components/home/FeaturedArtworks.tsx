@@ -83,9 +83,9 @@ export default function FeaturedArtworks() {
         setSavedMap((prev) => ({ ...prev, [art.id]: true }));
         showToast(`"${art.title}" saved to your wishlist!`, 'success');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error saving artwork:', err);
-      showToast(err?.message || 'Failed to update saved artwork.', 'error');
+      showToast(err instanceof Error ? err.message : 'Failed to update saved artwork.', 'error');
     } finally {
       setSavingMap((prev) => ({ ...prev, [art.id]: false }));
     }

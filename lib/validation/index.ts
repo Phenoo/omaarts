@@ -1,4 +1,4 @@
-import { Activity, Artwork, ActivityVariant } from '../types';
+import { Activity, Artwork } from '../types';
 
 export interface ValidationError {
   field: string;
@@ -146,14 +146,14 @@ export function validateArtworkInput(data: Partial<Artwork>): ValidationError[] 
   }
 
   // Price is optional (exhibition artworks can have 0 or omit price)
-  if (data.price !== undefined && data.price !== null && (data.price as any) !== '') {
+  if (data.price !== undefined && data.price !== null && (data.price as unknown) !== '') {
     if (isNaN(Number(data.price)) || Number(data.price) < 0) {
       errors.push({ field: 'price', message: 'Price must be a valid number (0 or greater)' });
     }
   }
 
   // Inventory quantity is optional (defaults to 0 or 1)
-  if (data.inventoryQty !== undefined && data.inventoryQty !== null && (data.inventoryQty as any) !== '') {
+  if (data.inventoryQty !== undefined && data.inventoryQty !== null && (data.inventoryQty as unknown) !== '') {
     if (isNaN(Number(data.inventoryQty)) || Number(data.inventoryQty) < 0) {
       errors.push({ field: 'inventoryQty', message: 'Inventory quantity must be a valid number (0 or greater)' });
     }

@@ -15,9 +15,8 @@ interface CMSContent {
 }
 
 export default function AdminContentPage() {
-  const [content, setContent] = useState<CMSContent | null>(null);
+  const [, setContent] = useState<CMSContent | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
   const [success, setSuccess] = useState(false);
 
   // Form states
@@ -30,7 +29,6 @@ export default function AdminContentPage() {
 
   const loadContent = async () => {
     setLoading(true);
-    setError(false);
     try {
       const docRef = doc(db, 'settings', 'cms_content');
       const snap = await getDoc(docRef);
@@ -64,7 +62,6 @@ export default function AdminContentPage() {
       }
     } catch (e) {
       console.error(e);
-      setError(true);
     } finally {
       setLoading(false);
     }

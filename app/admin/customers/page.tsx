@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { getCustomers, CustomerProfile } from '@/lib/firebase/services/adminOperations';
 import { useAdminAuth } from '@/lib/context/AdminAuthContext';
 import { Users, Search, RefreshCw, Star, Mail, Phone, Calendar } from 'lucide-react';
@@ -12,7 +12,7 @@ export default function AdminCustomersPage() {
   const [error, setError] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const loadCustomers = async () => {
+  const loadCustomers = useCallback(async () => {
     if (!user) return;
     setLoading(true);
     setError(false);
@@ -25,7 +25,7 @@ export default function AdminCustomersPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -33,7 +33,7 @@ export default function AdminCustomersPage() {
     } else if (!authLoading && !user) {
       setLoading(false);
     }
-  }, [authLoading, user]);
+  }, [authLoading, user, loadCustomers]);
 
   const filtered = customers.filter((c) => 
     c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

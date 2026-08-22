@@ -26,9 +26,9 @@ export default function WishlistPage() {
       try {
         const wishlist = await getWishlist(user.uid);
         setItems(wishlist);
-      } catch (e: any) {
+      } catch (e: unknown) {
         console.error('Error fetching wishlist:', e);
-        showToast(e?.message || 'Failed to load your saved artworks.', 'error');
+        showToast(e instanceof Error ? e.message : 'Failed to load your saved artworks.', 'error');
       } finally {
         setLoading(false);
       }
@@ -44,9 +44,9 @@ export default function WishlistPage() {
       await removeFromWishlist(user.uid, artworkId);
       setItems((prev) => prev.filter((item) => item.artworkId !== artworkId));
       showToast(`Removed "${title || 'Artwork'}" from your saved artworks.`, 'info');
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error('Error removing from wishlist:', e);
-      showToast(e?.message || 'Failed to remove artwork from saved list.', 'error');
+      showToast(e instanceof Error ? e.message : 'Failed to remove artwork from saved list.', 'error');
     } finally {
       setRemovingId(null);
     }

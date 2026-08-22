@@ -188,9 +188,9 @@ export default function AddArtworkPage() {
       await createArtwork(payload, adminUid);
       showToast(`Artwork "${payload.title}" saved successfully!`, 'success');
       router.push('/admin/artworks');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to create artwork:', err);
-      const errMsg = err.message || 'An error occurred while saving the artwork.';
+      const errMsg = err instanceof Error ? err.message : 'An error occurred while saving the artwork.';
       setSubmitError(errMsg);
       showToast(errMsg, 'error');
       setIsSubmitting(false);
@@ -459,6 +459,7 @@ export default function AddArtworkPage() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {images.map((img, idx) => (
                   <div key={idx} className="relative aspect-square border border-[var(--border-soft)] rounded-xl overflow-hidden group shadow-sm bg-white">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={img} alt="Preview" className="w-full h-full object-cover" />
                     <button
                       type="button"

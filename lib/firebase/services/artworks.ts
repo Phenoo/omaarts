@@ -128,19 +128,19 @@ export async function createArtwork(
       action: 'ARTWORK_CREATED',
       resourceType: 'artwork',
       resourceId: data.slug,
-      afterInfo: artworkDoc as any,
+      afterInfo: artworkDoc as unknown as Record<string, unknown>,
       timestamp: new Date().toISOString()
     };
     batch.set(auditRef, removeUndefinedFields(auditLogDoc));
 
     await batch.commit();
     return data.slug;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating artwork:', error);
-    if (error?.code === 'permission-denied') {
+    if ((error as { code?: string })?.code === 'permission-denied') {
       throw new Error('Permission denied: You do not have permission to save artworks. Please ensure you are logged in as an authorized admin.');
     }
-    if (error?.code === 'unavailable') {
+    if ((error as { code?: string })?.code === 'unavailable') {
       throw new Error('Database connection unavailable. Please check your network connection and try again.');
     }
     throw error;
@@ -196,8 +196,8 @@ export async function updateArtwork(
       action: 'ARTWORK_UPDATED',
       resourceType: 'artwork',
       resourceId: id,
-      beforeInfo: beforeData as any,
-      afterInfo: { ...beforeData, ...cleanUpdates } as any,
+      beforeInfo: beforeData as unknown as Record<string, unknown>,
+      afterInfo: { ...beforeData, ...cleanUpdates } as unknown as Record<string, unknown>,
       timestamp: new Date().toISOString()
     };
     batch.set(auditRef, removeUndefinedFields(auditLogDoc));
@@ -206,12 +206,12 @@ export async function updateArtwork(
     batch.update(docRef, cleanUpdates);
 
     await batch.commit();
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(`Error updating artwork ${id}:`, error);
-    if (error?.code === 'permission-denied') {
+    if ((error as { code?: string })?.code === 'permission-denied') {
       throw new Error('Permission denied: You do not have permission to update artworks. Please ensure you are logged in as an authorized admin.');
     }
-    if (error?.code === 'unavailable') {
+    if ((error as { code?: string })?.code === 'unavailable') {
       throw new Error('Database connection unavailable. Please check your network connection and try again.');
     }
     throw error;

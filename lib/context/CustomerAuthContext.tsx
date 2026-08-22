@@ -1,19 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { auth, db } from '../firebase/config';
-import {
-  onAuthStateChanged,
-  signOut,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signInWithPopup,
-  GoogleAuthProvider,
-  sendPasswordResetEmail,
-  updateProfile as updateFirebaseProfile,
-  User,
-} from 'firebase/auth';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import type { User } from 'firebase/auth';
 import { CustomerProfile } from '../types';
 
 interface CustomerAuthContextType {
@@ -31,9 +19,11 @@ interface CustomerAuthContextType {
 
 const CustomerAuthContext = createContext<CustomerAuthContextType | undefined>(undefined);
 
-const googleProvider = new GoogleAuthProvider();
-
 async function ensureUserDoc(user: User): Promise<CustomerProfile> {
+  const [{ db }, { doc, getDoc, setDoc }] = await Promise.all([
+    import('../firebase/config'),
+    import('firebase/firestore'),
+  ]);
   const userRef = doc(db, 'users', user.uid);
   const snap = await getDoc(userRef);
 
@@ -61,41 +51,68 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setLoading(true);
-      if (currentUser) {
-        try {
-          const userProfile = await ensureUserDoc(currentUser);
+    let active = true;
+    let unsubscribe: (() => void) | undefined;
 
-          // Only set state for customers (not admin/staff — they use AdminAuthContext)
-          if (userProfile.role === 'customer') {
-            setUser(currentUser);
-            setProfile(userProfile);
-          } else {
-            // Admin/staff user — don't interfere, just clear customer context
-            setUser(null);
-            setProfile(null);
+    const initializeAuth = async () => {
+      const [{ auth }, { onAuthStateChanged }] = await Promise.all([
+        import('../firebase/config'),
+        import('firebase/auth'),
+      ]);
+
+      if (!active) return;
+
+      unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+        if (!active) return;
+        setLoading(true);
+        if (currentUser) {
+          try {
+            const userProfile = await ensureUserDoc(currentUser);
+
+            // Only set state for customers (not admin/staff — they use AdminAuthContext)
+            if (active && userProfile.role === 'customer') {
+              setUser(currentUser);
+              setProfile(userProfile);
+            } else if (active) {
+              setUser(null);
+              setProfile(null);
+            }
+          } catch (e) {
+            console.error('Error fetching customer profile:', e);
+            if (active) {
+              setUser(null);
+              setProfile(null);
+            }
           }
-        } catch (e) {
-          console.error('Error fetching customer profile:', e);
+        } else {
           setUser(null);
           setProfile(null);
         }
-      } else {
-        setUser(null);
-        setProfile(null);
-      }
-      setLoading(false);
-    });
+        if (active) setLoading(false);
+      });
+    };
 
-    return () => unsubscribe();
+    void initializeAuth();
+    return () => {
+      active = false;
+      unsubscribe?.();
+    };
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
+    const [{ auth }, { signInWithEmailAndPassword }] = await Promise.all([
+      import('../firebase/config'),
+      import('firebase/auth'),
+    ]);
     await signInWithEmailAndPassword(auth, email, password);
   }, []);
 
   const signup = useCallback(async (name: string, email: string, password: string) => {
+    const [{ auth, db }, { createUserWithEmailAndPassword, updateProfile: updateFirebaseProfile }, { doc, setDoc }] = await Promise.all([
+      import('../firebase/config'),
+      import('firebase/auth'),
+      import('firebase/firestore'),
+    ]);
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     await updateFirebaseProfile(cred.user, { displayName: name });
 
@@ -111,16 +128,28 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
   }, []);
 
   const loginWithGoogle = useCallback(async () => {
-    await signInWithPopup(auth, googleProvider);
+    const [{ auth }, { signInWithPopup, GoogleAuthProvider }] = await Promise.all([
+      import('../firebase/config'),
+      import('firebase/auth'),
+    ]);
+    await signInWithPopup(auth, new GoogleAuthProvider());
   }, []);
 
   const logout = useCallback(async () => {
+    const [{ auth }, { signOut }] = await Promise.all([
+      import('../firebase/config'),
+      import('firebase/auth'),
+    ]);
     await signOut(auth);
     setUser(null);
     setProfile(null);
   }, []);
 
   const resetPassword = useCallback(async (email: string) => {
+    const [{ auth }, { sendPasswordResetEmail }] = await Promise.all([
+      import('../firebase/config'),
+      import('firebase/auth'),
+    ]);
     await sendPasswordResetEmail(auth, email);
   }, []);
 
@@ -129,6 +158,10 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
   ) => {
     if (!user) throw new Error('Not authenticated');
 
+    const [{ db }, { doc, updateDoc, getDoc }] = await Promise.all([
+      import('../firebase/config'),
+      import('firebase/firestore'),
+    ]);
     const userRef = doc(db, 'users', user.uid);
     await updateDoc(userRef, {
       ...data,
@@ -137,6 +170,7 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
 
     // Update Firebase profile if displayName changed
     if (data.displayName) {
+      const { updateProfile: updateFirebaseProfile } = await import('firebase/auth');
       await updateFirebaseProfile(user, { displayName: data.displayName });
     }
 

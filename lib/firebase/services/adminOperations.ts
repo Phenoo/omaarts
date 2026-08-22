@@ -7,8 +7,6 @@ import {
   query,
   where,
   orderBy,
-  updateDoc,
-  addDoc,
   writeBatch
 } from 'firebase/firestore';
 import { Booking, Order, Sale, AuditLog } from '../../types';
@@ -78,8 +76,8 @@ export async function updateBookingStatus(
       action: 'BOOKING_CANCELLED', // mapped for cancels or updates
       resourceType: 'booking',
       resourceId: id,
-      beforeInfo: beforeData as any,
-      afterInfo: { ...beforeData, ...updates } as any,
+      beforeInfo: beforeData as unknown as Record<string, unknown>,
+      afterInfo: { ...beforeData, ...updates } as unknown as Record<string, unknown>,
       timestamp: new Date().toISOString()
     };
     batch.set(auditRef, auditLogDoc);
@@ -141,8 +139,8 @@ export async function updateOrderStatus(
       action: 'ORDER_UPDATED',
       resourceType: 'order',
       resourceId: id,
-      beforeInfo: beforeData as any,
-      afterInfo: { ...beforeData, ...updates } as any,
+      beforeInfo: beforeData as unknown as Record<string, unknown>,
+      afterInfo: { ...beforeData, ...updates } as unknown as Record<string, unknown>,
       timestamp: new Date().toISOString()
     };
     batch.set(auditRef, auditLogDoc);
@@ -200,7 +198,7 @@ export async function createManualSale(
       action: 'MANUAL_SALE_CREATED',
       resourceType: 'sale',
       resourceId: docRef.id,
-      afterInfo: saleDoc as any,
+      afterInfo: saleDoc as unknown as Record<string, unknown>,
       timestamp: new Date().toISOString()
     };
     batch.set(auditRef, auditLogDoc);

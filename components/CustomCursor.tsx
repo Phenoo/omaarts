@@ -23,17 +23,6 @@ export default function CustomCursor() {
       });
     };
 
-    const onMouseEnter = (e: Event) => {
-      const target = e.target as HTMLElement;
-      if (target.tagName === 'A' || target.tagName === 'BUTTON' || target.closest('a') || target.closest('button')) {
-        setIsHovering(true);
-      }
-    };
-
-    const onMouseLeave = () => {
-      setIsHovering(false);
-    };
-
     window.addEventListener('mousemove', onMouseMove);
     // Add event listeners to all interactive elements effectively? 
     // A better approach for "all future elements" is using a global listener or checking document.elementFromPoint functionality, 

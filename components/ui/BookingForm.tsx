@@ -156,7 +156,7 @@ export default function BookingForm({ activity, onSuccess }: BookingFormProps) {
   const isBookingOnly = activity.pricingModel === 'BOOKING_ONLY' || activity.pricingModel === 'CUSTOM_QUOTE';
 
   return (
-    <form onSubmit={handleSubmit} className="section-shell p-6 md:p-8 bg-white/90 shadow-lg border border-[var(--border-soft)] max-w-2xl mx-auto flex flex-col gap-8 text-[var(--foreground)]">
+    <form onSubmit={handleSubmit} className="p-0 bg-transparent  shadow-none  border-0  rounded-none  backdrop-blur-md w-full md:max-w-3xl mx-auto flex flex-col gap-8 text-[var(--foreground)]">
       <div>
         <h2 className="font-serif text-3xl mb-2 text-[var(--accent-purple)]">Reserve Your Experience</h2>
         <p className="font-sans text-sm text-[var(--text-muted)]">
@@ -220,36 +220,30 @@ export default function BookingForm({ activity, onSuccess }: BookingFormProps) {
 
       {/* 2. Sizing / Guest Count & Duration */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        {/* Guest Counter */}
+        {/* Guest Count - Dropdown */}
         <div className="flex flex-col gap-2">
-          <label className="font-mono text-xs uppercase tracking-wider text-[var(--text-muted)] font-medium flex items-center gap-1.5">
+          <label htmlFor="booking-guests" className="font-mono text-xs uppercase tracking-wider text-[var(--text-muted)] font-medium flex items-center gap-1.5">
             <Users size={14} className="text-[var(--accent-purple)]" />
             Number of Guests
           </label>
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              disabled={guests <= 1}
-              onClick={() => {
-                setGuests(g => Math.max(1, g - 1));
-                clearError('numberOfGuests');
-              }}
-              className="w-10 h-10 rounded-full border border-[var(--border-soft)] bg-white flex items-center justify-center font-bold text-lg hover:border-[var(--accent-purple)] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-            >
-              -
-            </button>
-            <span className="font-mono text-lg font-semibold w-8 text-center">{guests}</span>
-            <button
-              type="button"
-              onClick={() => {
-                setGuests(g => g + 1);
-                clearError('numberOfGuests');
-              }}
-              className="w-10 h-10 rounded-full border border-[var(--border-soft)] bg-white flex items-center justify-center font-bold text-lg hover:border-[var(--accent-purple)] cursor-pointer"
-            >
-              +
-            </button>
-          </div>
+          <select
+            id="booking-guests"
+            value={guests}
+            onChange={(e) => {
+              setGuests(Number(e.target.value));
+              clearError('numberOfGuests');
+            }}
+            className="w-full bg-white border border-[var(--border-soft)] rounded-xl py-3 px-4 font-sans text-sm focus:outline-none focus:border-[var(--accent-purple)] transition-colors cursor-pointer"
+          >
+            {Array.from({ length: 30 }, (_, i) => i + 1).map((n) => (
+              <option key={n} value={n}>
+                {n} {n === 1 ? 'Guest' : 'Guests'}
+              </option>
+            ))}
+          </select>
+          {getFieldError('numberOfGuests') && (
+            <span className="text-red-500 text-xs font-mono">{getFieldError('numberOfGuests')}</span>
+          )}
         </div>
 
         {/* Hourly Duration Selector (Karaoke, etc.) */}

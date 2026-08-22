@@ -352,7 +352,7 @@ export const INITIAL_ACTIVITIES: Omit<Activity, 'createdAt' | 'updatedAt'>[] = [
   }
 ];
 
-export async function seedActivities(): Promise<{ success: boolean; count: number; error?: any }> {
+export async function seedActivities(): Promise<{ success: boolean; count: number; error?: unknown }> {
   try {
     const batch = writeBatch(db);
     const colRef = collection(db, 'activities');

@@ -110,7 +110,7 @@ export default function DatePicker({
   };
 
   return (
-    <div className="border border-[var(--border-soft)] rounded-2xl p-5 bg-white shadow-sm max-w-sm w-full mx-auto">
+    <div className="border border-[var(--border-soft)] rounded-2xl p-5 bg-white shadow-sm max-w-xl w-full mx-auto">
       {/* Month Selector */}
       <div className="flex items-center justify-between mb-5 border-b border-[var(--border-soft)] pb-3">
         <h3 className="font-serif text-lg text-[var(--foreground)]">

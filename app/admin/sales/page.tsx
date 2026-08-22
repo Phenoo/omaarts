@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { getSales, createManualSale } from '@/lib/firebase/services/adminOperations';
 import { useAdminAuth } from '@/lib/context/AdminAuthContext';
 import { Sale } from '@/lib/types';
-import { Coins, Plus, Download, RefreshCw, FileText, CheckCircle2 } from 'lucide-react';
+import { Coins, Plus, Download, RefreshCw, CheckCircle2 } from 'lucide-react';
 
 export default function AdminSalesPage() {
   const { user, loading: authLoading } = useAdminAuth();
@@ -30,7 +30,7 @@ export default function AdminSalesPage() {
   const [submitError, setSubmitError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  const loadSales = async () => {
+  const loadSales = useCallback(async () => {
     if (!user) return;
     setLoading(true);
     setError(false);
@@ -43,7 +43,7 @@ export default function AdminSalesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -51,7 +51,7 @@ export default function AdminSalesPage() {
     } else if (!authLoading && !user) {
       setLoading(false);
     }
-  }, [authLoading, user]);
+  }, [authLoading, user, loadSales]);
 
   const handleExportCSV = () => {
     if (sales.length === 0) return;
@@ -119,9 +119,9 @@ export default function AdminSalesPage() {
       setCustomerName('');
       setCustomerEmail('');
       setCustomerPhone('');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setSubmitError(err.message || 'Failed to log manual sale.');
+      setSubmitError(err instanceof Error ? err.message : 'Failed to log manual sale.');
     }
   };
 
@@ -251,7 +251,7 @@ export default function AdminSalesPage() {
                       <label className="font-mono text-xs uppercase tracking-wider text-[var(--text-muted)] font-medium">Category</label>
                       <select
                         value={category}
-                        onChange={(e) => setCategory(e.target.value as any)}
+                        onChange={(e) => setCategory(e.target.value as typeof category)}
                         className="w-full bg-white border border-[var(--border-soft)] rounded-xl py-2 px-3 focus:outline-none focus:border-[var(--accent-purple)] cursor-pointer"
                       >
                         <option value="ACTIVITY">Paint Session / Event</option>
@@ -264,7 +264,7 @@ export default function AdminSalesPage() {
                       <label className="font-mono text-xs uppercase tracking-wider text-[var(--text-muted)] font-medium">Payment Method</label>
                       <select
                         value={paymentMethod}
-                        onChange={(e) => setPaymentMethod(e.target.value as any)}
+                        onChange={(e) => setPaymentMethod(e.target.value as typeof paymentMethod)}
                         className="w-full bg-white border border-[var(--border-soft)] rounded-xl py-2 px-3 focus:outline-none focus:border-[var(--accent-purple)] cursor-pointer"
                       >
                         <option value="CASH">CASH PAID</option>

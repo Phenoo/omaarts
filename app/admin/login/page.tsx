@@ -69,15 +69,17 @@ function AdminLoginContent() {
         await signOut(auth);
         setErrorMsg('User registration records not found in database. Contact Super Admin.');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Admin login error:', err);
       // Friendly messages for common Auth errors
-      if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+      const code = typeof err === 'object' && err !== null && 'code' in err ? (err as { code: string }).code : undefined;
+      const message = err instanceof Error ? err.message : 'An unexpected authentication error occurred.';
+      if (code === 'auth/invalid-credential' || code === 'auth/user-not-found' || code === 'auth/wrong-password') {
         setErrorMsg('Invalid email or password. Please try again.');
-      } else if (err.code === 'auth/too-many-requests') {
+      } else if (code === 'auth/too-many-requests') {
         setErrorMsg('Too many unsuccessful attempts. Access has been temporarily locked. Try again later.');
       } else {
-        setErrorMsg(err.message || 'An unexpected authentication error occurred.');
+        setErrorMsg(message);
       }
     } finally {
       setLoading(false);
@@ -117,10 +119,12 @@ function AdminLoginContent() {
         await signOut(auth);
         setErrorMsg('Google account not registered as staff. Contact a Super Admin to register your profile.');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Google sign in error:', err);
-      if (err.code !== 'auth/popup-closed-by-user') {
-        setErrorMsg(err.message || 'An unexpected Google authentication error occurred.');
+      const code = typeof err === 'object' && err !== null && 'code' in err ? (err as { code: string }).code : undefined;
+      const message = err instanceof Error ? err.message : 'An unexpected Google authentication error occurred.';
+      if (code !== 'auth/popup-closed-by-user') {
+        setErrorMsg(message);
       }
     } finally {
       setLoading(false);

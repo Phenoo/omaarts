@@ -1,10 +1,9 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { getActivities, createActivity, updateActivity, archiveActivity } from '@/lib/firebase/services/activities';
+import { getActivities, archiveActivity } from '@/lib/firebase/services/activities';
 import { useAdminAuth } from '@/lib/context/AdminAuthContext';
-import { Activity, ActivityVariant, PricingModel } from '@/lib/types';
-import { validateActivityInput, ValidationError } from '@/lib/validation';
+import { Activity } from '@/lib/types';
 import { Paintbrush, Plus, Edit, Archive, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 

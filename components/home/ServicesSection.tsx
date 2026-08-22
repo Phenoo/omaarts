@@ -38,7 +38,7 @@ export default function ServicesSection() {
         </div>
         
         <div className="flex justify-center mt-16">
-            <Link href="/services" className="px-12 py-4 border border-[var(--accent-primary)] text-[var(--accent-primary)] font-mono text-sm uppercase tracking-widest hover:bg-[var(--accent-primary)] hover:text-white transition-all duration-300">
+            <Link href="/private-events" className="px-12 py-4 border border-[var(--accent-primary)] text-[var(--accent-primary)] font-mono text-sm uppercase tracking-widest hover:bg-[var(--accent-primary)] hover:text-white transition-all duration-300">
                 View Full Services
             </Link>
         </div>

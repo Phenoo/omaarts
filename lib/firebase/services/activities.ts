@@ -7,8 +7,6 @@ import {
   query,
   where,
   orderBy,
-  updateDoc,
-  addDoc,
   writeBatch
 } from 'firebase/firestore';
 import { Activity, ActivityPriceHistory, AuditLog } from '../../types';
@@ -124,8 +122,8 @@ export async function updateActivity(
       action: 'ARTWORK_UPDATED', // matches schema log action
       resourceType: 'activity',
       resourceId: id,
-      beforeInfo: beforeData as any,
-      afterInfo: { ...beforeData, ...cleanUpdates } as any,
+      beforeInfo: beforeData as unknown as Record<string, unknown>,
+      afterInfo: { ...beforeData, ...cleanUpdates } as unknown as Record<string, unknown>,
       timestamp: new Date().toISOString(),
     };
     batch.set(auditRef, removeUndefinedFields(auditLogDoc));
@@ -173,7 +171,7 @@ export async function createActivity(
       action: 'ARTWORK_CREATED',
       resourceType: 'activity',
       resourceId: data.slug,
-      afterInfo: activityDoc as any,
+      afterInfo: activityDoc as unknown as Record<string, unknown>,
       timestamp: new Date().toISOString(),
     };
     batch.set(auditRef, removeUndefinedFields(auditLogDoc));

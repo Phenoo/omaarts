@@ -72,9 +72,9 @@ export default function ArtworkCard({ artwork }: { artwork: PublicArtwork }) {
         setIsSaved(true);
         showToast(`"${artwork.title}" saved to your wishlist!`, 'success');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error saving artwork:', err);
-      showToast(err?.message || 'Failed to update saved artwork. Please try again.', 'error');
+      showToast(err instanceof Error ? err.message : 'Failed to update saved artwork. Please try again.', 'error');
     } finally {
       setIsSaving(false);
     }

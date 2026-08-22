@@ -23,7 +23,7 @@ export default function TimeSlotPicker({
       const ampm = hour >= 12 ? 'PM' : 'AM';
       const displayHour = hour % 12 === 0 ? 12 : hour % 12;
       return `${displayHour}:${minStr} ${ampm}`;
-    } catch (e) {
+    } catch {
       return time24;
     }
   };
