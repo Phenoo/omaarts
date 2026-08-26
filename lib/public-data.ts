@@ -1,6 +1,6 @@
 import { INITIAL_ACTIVITIES } from '@/lib/firebase/services/seedData';
 import { getAdminContext } from '@/lib/firebase/admin';
-import { Activity, Artwork } from '@/lib/types';
+import { Activity, Artwork, Material } from '@/lib/types';
 import { withActivityImages } from '@/lib/activityImages';
 import { unstable_cache } from 'next/cache';
 
@@ -9,6 +9,7 @@ export type PublicArtwork = Artwork & {
 };
 
 export type PublicExperience = Activity;
+export type PublicMaterial = Material;
 
 function cleanDate(value: unknown) {
   if (typeof value === 'string') return value;
@@ -74,6 +75,30 @@ const getFirebaseExperiences = unstable_cache(async (): Promise<PublicExperience
   }
 }, ['public-experiences'], { revalidate: 300 });
 
+const getFirebaseMaterials = async (): Promise<PublicMaterial[]> => {
+  const { adminDb, isConfigured } = getAdminContext();
+  if (!isConfigured || !adminDb) return [];
+
+  try {
+    const snapshot = await adminDb.collection('materials').where('status', '!=', 'ARCHIVED').get();
+    return snapshot.docs
+      .map((doc) => {
+        const data = doc.data() as Record<string, unknown>;
+        return {
+          id: doc.id,
+          ...data,
+          images: Array.isArray(data.images) && data.images.length > 0 ? data.images : ['/images/artist-studio.png'],
+          reservedQty: typeof data.reservedQty === 'number' ? data.reservedQty : 0,
+        } as Material;
+      })
+      .filter((material) => material.availableForSale && material.inventoryQty - (material.reservedQty || 0) > 0)
+      .sort((a, b) => Number(b.featured) - Number(a.featured) || a.title.localeCompare(b.title));
+  } catch (error) {
+    console.error('Failed to fetch materials from Firebase backend:', error);
+    return [];
+  }
+};
+
 export async function getPublicArtworks(): Promise<PublicArtwork[]> {
   return await getFirebaseArtworks();
 }
@@ -116,4 +141,8 @@ export async function getPublicExperiences() {
 export async function getPublicExperience(slug: string) {
   const experiences = await getPublicExperiences();
   return experiences.find((experience) => experience.slug === slug || experience.id === slug) || null;
+}
+
+export async function getPublicMaterials(): Promise<PublicMaterial[]> {
+  return await getFirebaseMaterials();
 }

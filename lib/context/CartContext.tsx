@@ -1,12 +1,16 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import type { Artwork } from '../types';
+import type { Artwork, Material } from '../types';
 import type { User } from 'firebase/auth';
 import { firebaseErrorDetails } from '@/lib/firebase/errorDetails';
 
 interface CartItem {
-  artworkId: string;
+  productType: 'artwork' | 'material';
+  productId: string;
+  /** Kept for backwards compatibility with carts saved before materials existed. */
+  artworkId?: string;
+  materialId?: string;
   title: string;
   price: number;
   image: string;
@@ -15,12 +19,12 @@ interface CartItem {
 
 interface CartContextType {
   cart: CartItem[];
-  addToCart: (artwork: Artwork) => void;
-  removeFromCart: (artworkId: string) => void;
+  addToCart: (product: Artwork | Material, quantity?: number) => void;
+  removeFromCart: (productId: string, productType?: 'artwork' | 'material') => void;
   clearCart: () => void;
   cartCount: number;
   cartSubtotal: number;
-  isInCart: (artworkId: string) => boolean;
+  isInCart: (productId: string, productType?: 'artwork' | 'material') => boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -44,14 +48,22 @@ function saveLocalCart(cart: CartItem[]) {
   }
 }
 
-/** Merge two carts: union by artworkId, localStorage items take priority for duplicates */
+/** Merge two carts by product type/id; localStorage items take priority for duplicates. */
+function normalizeCartItem(item: CartItem): CartItem {
+  const productType = item.productType || (item.materialId ? 'material' : 'artwork');
+  const productId = item.productId || item.materialId || item.artworkId || '';
+  return { ...item, productType, productId, ...(productType === 'artwork' ? { artworkId: productId } : { materialId: productId }) };
+}
+
 function mergeCarts(localCart: CartItem[], firestoreCart: CartItem[]): CartItem[] {
   const map = new Map<string, CartItem>();
-  for (const item of firestoreCart) {
-    map.set(item.artworkId, item);
+  for (const rawItem of firestoreCart) {
+    const item = normalizeCartItem(rawItem);
+    map.set(`${item.productType}:${item.productId}`, item);
   }
-  for (const item of localCart) {
-    map.set(item.artworkId, item); // local items overwrite firestore dupes
+  for (const rawItem of localCart) {
+    const item = normalizeCartItem(rawItem);
+    map.set(`${item.productType}:${item.productId}`, item); // local items overwrite firestore dupes
   }
   return Array.from(map.values());
 }
@@ -164,7 +176,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         // Keep localStorage in sync too for fast loads
         saveLocalCart(merged);
       } else {
-        setCart(localCart);
+        setCart(localCart.map(normalizeCartItem));
       }
       setIsLoaded(true);
     };
@@ -183,24 +195,33 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, [cart, isLoaded, currentUser, syncFirestoreCart]);
 
-  const addToCart = useCallback((artwork: Artwork) => {
+  const addToCart = useCallback((product: Artwork | Material, quantity = 1) => {
+    const productType = 'medium' in product || 'artist' in product ? 'artwork' : 'material';
+    const safeQuantity = productType === 'artwork' ? 1 : Math.max(1, Math.floor(quantity));
     setCart((prev) => {
-      const exists = prev.some((item) => item.artworkId === artwork.id);
-      if (exists) return prev; // already in cart
+      const existing = prev.find((item) => item.productType === productType && item.productId === product.id);
+      if (existing) {
+        if (productType === 'material') {
+          return prev.map((item) => item === existing ? { ...item, quantity: item.quantity + safeQuantity } : item);
+        }
+        return prev;
+      }
 
       const newItem: CartItem = {
-        artworkId: artwork.id,
-        title: artwork.title,
-        price: artwork.price,
-        image: artwork.images && artwork.images[0] ? artwork.images[0] : '/images/artist-studio.png',
-        quantity: 1, // capped at 1 for 1-of-1 artworks
+        productType,
+        productId: product.id,
+        ...(productType === 'artwork' ? { artworkId: product.id } : { materialId: product.id }),
+        title: product.title,
+        price: product.price,
+        image: product.images && product.images[0] ? product.images[0] : '/images/artist-studio.png',
+        quantity: safeQuantity,
       };
       return [...prev, newItem];
     });
   }, []);
 
-  const removeFromCart = useCallback((artworkId: string) => {
-    setCart((prev) => prev.filter((item) => item.artworkId !== artworkId));
+  const removeFromCart = useCallback((productId: string, productType: 'artwork' | 'material' = 'artwork') => {
+    setCart((prev) => prev.filter((item) => !(item.productType === productType && item.productId === productId)));
   }, []);
 
   const clearCart = useCallback(() => {
@@ -208,14 +229,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const isInCart = useCallback(
-    (artworkId: string) => {
-      return cart.some((item) => item.artworkId === artworkId);
+    (productId: string, productType: 'artwork' | 'material' = 'artwork') => {
+      return cart.some((item) => item.productType === productType && item.productId === productId);
     },
     [cart]
   );
 
-  const cartCount = cart.length;
-  const cartSubtotal = cart.reduce((sum, item) => sum + item.price, 0);
+  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const cartSubtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   return (
     <CartContext.Provider

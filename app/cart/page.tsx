@@ -32,7 +32,7 @@ export default function CartPage() {
             </div>
             <h2 className="font-serif text-2xl md:text-3xl text-[var(--foreground)]">Your cart is empty</h2>
             <p className="font-sans text-sm text-[var(--text-muted)] max-w-sm">
-              Discover original paintings, contemporary mixed media, and portfolio works available for purchase in our shop.
+              Discover original paintings, contemporary mixed media, and studio materials available for purchase in our shop.
             </p>
             <Link
               href="/art"
@@ -49,7 +49,7 @@ export default function CartPage() {
             <div className="lg:col-span-2 flex flex-col gap-5">
               {cart.map((item) => (
                 <div
-                  key={item.artworkId}
+                  key={`${item.productType}:${item.productId}`}
                   className="section-shell p-4 md:p-5 flex flex-col sm:flex-row items-center gap-6 bg-white/80"
                 >
                   {/* Image */}
@@ -65,20 +65,20 @@ export default function CartPage() {
                   {/* Details */}
                   <div className="flex-grow text-center sm:text-left flex flex-col gap-1.5">
                     <span className="font-mono text-[9px] uppercase tracking-widest text-[var(--accent-orange)] bg-[var(--surface-soft)]/50 px-2 py-0.5 rounded-full w-fit mx-auto sm:mx-0">
-                      Original Art (1-of-1)
+                      {item.productType === 'material' ? 'Studio material' : 'Original Art (1-of-1)'}
                     </span>
                     <h3 className="font-serif text-xl md:text-2xl text-[var(--foreground)]">{item.title}</h3>
-                    <p className="font-mono text-xs text-[var(--text-muted)]">Quantity: 1 (Limited Edition)</p>
+                    <p className="font-mono text-xs text-[var(--text-muted)]">Quantity: {item.quantity}{item.productType === 'artwork' ? ' (Limited Edition)' : ''}</p>
                   </div>
 
                   {/* Price & Action */}
                   <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-6 w-full sm:w-auto border-t sm:border-t-0 pt-4 sm:pt-0">
                     <span className="font-mono text-base md:text-lg font-bold text-[var(--foreground)]">
-                      ₦{item.price.toLocaleString()}
+                      ₦{(item.price * item.quantity).toLocaleString()}
                     </span>
                     <button
                       type="button"
-                      onClick={() => removeFromCart(item.artworkId)}
+                      onClick={() => removeFromCart(item.productId, item.productType)}
                       className="text-gray-400 hover:text-red-500 p-2 rounded-full hover:bg-red-50 transition-all cursor-pointer"
                       title="Remove item"
                     >
@@ -120,7 +120,7 @@ export default function CartPage() {
               </Link>
 
               <p className="text-[10px] font-sans text-center text-[var(--text-muted)] leading-relaxed">
-                Unique artworks are reserved upon successful Paystack checkout verification. Items in cart are not secured until paid.
+                Items are reserved only while checkout is being verified. Items in cart are not secured until paid.
               </p>
             </div>
             

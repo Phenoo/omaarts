@@ -7,7 +7,7 @@ import { markPaymentFailed } from '@/lib/firebase/services/paymentHandler';
 import { sendBookingRequestReceivedEmail } from '@/lib/email/resend';
 import { calculateActivityPrice } from '@/lib/utils/pricing';
 import { validateEmail, validatePhone } from '@/lib/validation';
-import { Activity, ActivityVariant, Artwork, Booking, Order } from '@/lib/types';
+import { Activity, ActivityVariant, Artwork, Booking, Material, Order } from '@/lib/types';
 import { absoluteUrl } from '@/lib/site';
 import { removeUndefinedFields } from '@/lib/firebase/sanitize';
 
@@ -254,12 +254,15 @@ export async function POST(request: Request) {
     if (!Array.isArray(rawItems) || rawItems.length === 0 || rawItems.length > 20) throw new CheckoutError('Your cart is empty or contains too many items.');
     const items = rawItems.map((item) => {
       if (!item || typeof item !== 'object') throw new CheckoutError('Your cart contains an invalid item.');
-      const artworkId = stringValue((item as Record<string, unknown>).artworkId, 'artwork', 160);
+      const rawItem = item as Record<string, unknown>;
+      const productType = rawItem.productType === 'material' ? 'material' : 'artwork';
+      const productId = stringValue(rawItem.productId || rawItem.artworkId || rawItem.materialId, productType, 160);
       const quantity = Number((item as Record<string, unknown>).quantity);
-      if (quantity !== 1) throw new CheckoutError('Original artworks can only be purchased one at a time.');
-      return { artworkId, quantity: 1 as const };
+      if (!Number.isSafeInteger(quantity) || quantity < 1 || quantity > 100) throw new CheckoutError('Item quantity must be between 1 and 100.');
+      if (productType === 'artwork' && quantity !== 1) throw new CheckoutError('Original artworks can only be purchased one at a time.');
+      return { productType, productId, quantity };
     });
-    if (new Set(items.map((item) => item.artworkId)).size !== items.length) throw new CheckoutError('Your cart contains a duplicate artwork.');
+    if (new Set(items.map((item) => `${item.productType}:${item.productId}`)).size !== items.length) throw new CheckoutError('Your cart contains a duplicate item.');
 
     const orderRef = adminDb.collection('orders').doc();
     const reference = `PSO-${randomUUID().replace(/-/g, '').slice(0, 20).toUpperCase()}`;
@@ -272,27 +275,36 @@ export async function POST(request: Request) {
       return errorResponse('This checkout is already being prepared. Please wait a moment and try again.', 409);
     }
 
-    const artworkRefs = items.map((item) => adminDb.collection('artworks').doc(item.artworkId));
+    const productRefs = items.map((item) => adminDb.collection(item.productType === 'material' ? 'materials' : 'artworks').doc(item.productId));
     let createdOrder: Order;
     try {
       createdOrder = await adminDb.runTransaction(async (transaction) => {
-        const [requestInTransaction, ...artworkSnapshots] = await Promise.all([transaction.get(checkoutRef), ...artworkRefs.map((ref) => transaction.get(ref))]);
+        const [requestInTransaction, ...productSnapshots] = await Promise.all([transaction.get(checkoutRef), ...productRefs.map((ref) => transaction.get(ref))]);
         if (requestInTransaction.exists) throw new CheckoutError('This checkout is already being prepared. Please wait a moment and try again.', 409);
         const verifiedItems: Order['items'] = [];
         let subtotal = 0;
-        for (let index = 0; index < artworkSnapshots.length; index += 1) {
-          const snapshot = artworkSnapshots[index];
+        for (let index = 0; index < productSnapshots.length; index += 1) {
+          const snapshot = productSnapshots[index];
           const item = items[index];
-          if (!snapshot.exists) throw new CheckoutError(`Artwork ${item.artworkId} was not found.`, 404);
-          const artworkData = snapshot.data() || {};
-          const artwork = { id: snapshot.id, ...artworkData } as Artwork;
-          const reservationActive = artwork.reservationId && artwork.reservationId !== orderRef.id && typeof artwork.reservationExpiresAt === 'string' && Date.parse(artwork.reservationExpiresAt) > now.getTime();
-          const expiredReservation = artwork.status === 'RESERVED' && !reservationActive;
-          if ((!expiredReservation && artwork.status !== 'AVAILABLE') || (!expiredReservation && !artwork.availableForSale) || artwork.inventoryQty < 1 || reservationActive) throw new CheckoutError(`Artwork "${artwork.title || 'Selected Artwork'}" is no longer available.`, 409);
-          if (!Number.isSafeInteger(artwork.price) || artwork.price < 0) throw new CheckoutError(`Artwork "${artwork.title || 'Selected Artwork'}" has an invalid price.`, 500);
-          verifiedItems.push({ artworkId: snapshot.id || item.artworkId, title: artwork.title || 'Original Artwork', price: artwork.price, quantity: 1 });
-          subtotal += artwork.price;
-          transaction.update(artworkRefs[index], { status: 'RESERVED', availableForSale: false, reservationId: orderRef.id, reservationExpiresAt, updatedAt: now.toISOString() });
+          const label = item.productType === 'material' ? 'Material' : 'Artwork';
+          if (!snapshot.exists) throw new CheckoutError(`${label} ${item.productId} was not found.`, 404);
+          const productData = snapshot.data() || {};
+          const product = { id: snapshot.id, ...productData } as Artwork | Material;
+          if (!Number.isSafeInteger(product.price) || product.price < 0) throw new CheckoutError(`${label} "${product.title || 'Selected item'}" has an invalid price.`, 500);
+          if (item.productType === 'material') {
+            const material = product as Material;
+            if (material.status === 'ARCHIVED' || !material.availableForSale || material.inventoryQty < item.quantity) throw new CheckoutError(`Material "${material.title || 'Selected item'}" is no longer available in the requested quantity.`, 409);
+            verifiedItems.push({ productType: 'material', productId: snapshot.id || item.productId, title: material.title || 'Studio Material', price: material.price, quantity: item.quantity });
+            subtotal += material.price * item.quantity;
+          } else {
+            const artwork = product as Artwork;
+            const reservationActive = artwork.reservationId && artwork.reservationId !== orderRef.id && typeof artwork.reservationExpiresAt === 'string' && Date.parse(artwork.reservationExpiresAt) > now.getTime();
+            const expiredReservation = artwork.status === 'RESERVED' && !reservationActive;
+            if ((!expiredReservation && artwork.status !== 'AVAILABLE') || (!expiredReservation && !artwork.availableForSale) || artwork.inventoryQty < 1 || reservationActive) throw new CheckoutError(`Artwork "${artwork.title || 'Selected Artwork'}" is no longer available.`, 409);
+            verifiedItems.push({ productType: 'artwork', productId: snapshot.id || item.productId, artworkId: snapshot.id || item.productId, title: artwork.title || 'Original Artwork', price: artwork.price, quantity: 1 });
+            subtotal += artwork.price;
+            transaction.update(productRefs[index], { status: 'RESERVED', availableForSale: false, reservationId: orderRef.id, reservationExpiresAt, updatedAt: now.toISOString() });
+          }
         }
         const deliveryFee = deliveryOption === 'delivery' ? DELIVERY_FEE : 0;
         const order: Order = {

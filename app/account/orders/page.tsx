@@ -9,7 +9,9 @@ import { ShoppingBag, Loader2, Package } from 'lucide-react';
 import Footer from '@/components/Footer';
 
 interface OrderItem {
-  artworkId: string;
+  productType?: 'artwork' | 'material';
+  productId?: string;
+  artworkId?: string;
   title: string;
   price: number;
   quantity: number;
@@ -110,14 +112,14 @@ export default function OrdersPage() {
             </div>
             <h3 className="font-serif text-2xl mb-2">No orders yet</h3>
             <p className="text-sm text-[var(--text-muted)] mb-6">
-              Browse our art collection and place your first order.
+              Browse our art collection and studio materials to place your first order.
             </p>
             <Link
               href="/art"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--accent-purple)] hover:bg-[var(--accent-orange)] text-white font-mono text-xs uppercase tracking-widest transition-all cursor-pointer"
             >
               <ShoppingBag size={14} />
-              Shop Art
+              Shop Now
             </Link>
           </div>
         ) : (
@@ -157,9 +159,9 @@ export default function OrdersPage() {
                 <div className="space-y-2 border-t border-[var(--border-soft)] pt-4">
                   {order.items.map((item, i) => (
                     <div key={i} className="flex items-center justify-between text-sm">
-                      <span className="text-[var(--foreground)]">{item.title}</span>
+                      <span className="text-[var(--foreground)]">{item.title} <small className="text-[var(--text-muted)]">× {item.quantity}</small></span>
                       <span className="font-mono text-[var(--text-muted)]">
-                        ₦{item.price?.toLocaleString()}
+                        ₦{(item.price * item.quantity)?.toLocaleString()}
                       </span>
                     </div>
                   ))}

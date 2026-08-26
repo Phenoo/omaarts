@@ -52,6 +52,12 @@ service cloud.firestore {
       allow write: if isStaff();
     }
 
+    // Materials and other shop goods
+    match /materials/{materialId} {
+      allow read: if true;
+      allow write: if isStaff();
+    }
+
     // Categories collection rules
     match /categories/{categoryId} {
       allow read: if true;

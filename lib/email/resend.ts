@@ -286,7 +286,7 @@ export async function sendOrderConfirmationEmail(order: Order) {
   const itemsHtml = order.items.map((item) => `
     <tr style="border-bottom: 1px dashed #f0e6fc; font-size: 13px;">
       <td style="padding: 10px 0; font-family: Georgia, serif; font-weight: bold;">${item.title}</td>
-      <td style="padding: 10px 0; text-align: right; font-family: monospace;">₦${item.price.toLocaleString()}</td>
+      <td style="padding: 10px 0; text-align: right; font-family: monospace;">₦${(item.price * item.quantity).toLocaleString()}${item.quantity > 1 ? ` × ${item.quantity}` : ''}</td>
     </tr>
   `).join('');
 

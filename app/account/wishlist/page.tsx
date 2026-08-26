@@ -57,6 +57,8 @@ export default function WishlistPage() {
       id: item.artworkId,
       title: item.title,
       price: item.price,
+      artist: 'Oma Achebe',
+      medium: '',
       images: [item.image],
     } as Parameters<typeof addToCart>[0]);
     showToast(`Added "${item.title}" to your cart.`, 'success');

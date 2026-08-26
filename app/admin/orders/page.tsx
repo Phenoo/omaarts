@@ -281,15 +281,15 @@ export default function AdminOrdersPage() {
 
               {/* Items list */}
               <div className="flex flex-col gap-2">
-                <span className="font-mono text-xs uppercase tracking-wider text-[var(--text-muted)]">Artworks Ordered</span>
+                <span className="font-mono text-xs uppercase tracking-wider text-[var(--text-muted)]">Items Ordered</span>
                 <div className="flex flex-col gap-2.5 bg-gray-50/50 border border-gray-100 p-3.5 rounded-xl">
                   {selectedOrder.items.map((item, idx) => (
                     <div key={idx} className="flex justify-between items-center text-xs">
                       <div>
                         <span className="font-serif font-bold text-[var(--foreground)]">{item.title}</span>
-                        <span className="block text-[10px] text-[var(--text-muted)] font-mono mt-0.5">ID: {item.artworkId}</span>
+                        <span className="block text-[10px] text-[var(--text-muted)] font-mono mt-0.5">{item.productType === 'material' ? 'Material' : 'Artwork'} · ID: {item.productId || item.artworkId}</span>
                       </div>
-                      <span className="font-mono font-semibold">₦{item.price.toLocaleString()}</span>
+                      <span className="font-mono font-semibold">₦{(item.price * item.quantity).toLocaleString()} <small className="font-normal">× {item.quantity}</small></span>
                     </div>
                   ))}
                   

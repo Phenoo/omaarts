@@ -139,7 +139,7 @@ export default function ConfirmationPage({ searchParams }: PageProps) {
             <AlertTriangle className="text-red-500" size={48} />
             <h2 className="font-serif text-3xl text-[var(--foreground)]">Payment not completed</h2>
             <p className="font-sans text-sm text-[var(--text-muted)] leading-relaxed">
-              No additional charge was made. Your original artwork has been released so you can try again safely.
+              No additional charge was made. Your items have been released so you can try again safely.
             </p>
             <Link href={type === 'order' ? '/checkout' : '/experiences'} className="px-6 py-3 bg-[var(--accent-purple)] text-white rounded-full font-mono text-xs uppercase tracking-widest hover:bg-[var(--accent-orange)] transition-all cursor-pointer font-bold shadow-sm">
               {type === 'order' ? 'Try checkout again' : 'Return to experiences'}
@@ -264,7 +264,7 @@ export default function ConfirmationPage({ searchParams }: PageProps) {
                       <span className="block text-[var(--text-muted)] mb-2">Artworks Ordered</span>
                       <div className="flex flex-col gap-2 bg-[var(--surface-soft)]/20 p-3 rounded-lg border border-[var(--border-soft)]">
                         {order.items.map((item) => (
-                          <div key={item.artworkId} className="flex justify-between items-center text-xs">
+                          <div key={`${item.productType || 'artwork'}:${item.productId || item.artworkId || item.title}`} className="flex justify-between items-center text-xs">
                             <span className="font-serif font-semibold">{item.title}</span>
                             <span className="font-semibold">₦{item.price.toLocaleString()}</span>
                           </div>

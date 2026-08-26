@@ -149,10 +149,11 @@ export default function CheckoutPage() {
           deliveryAddress: effectiveDeliveryAddress,
           orderNotes,
           items: cart.map((item) => ({
-            artworkId: item.artworkId,
+            productType: item.productType,
+            productId: item.productId,
             title: item.title,
             price: item.price,
-            quantity: 1,
+            quantity: item.quantity,
           })),
         }),
       });
@@ -207,7 +208,7 @@ export default function CheckoutPage() {
           <div className="section-shell p-10 text-center max-w-md bg-white">
             <ShoppingBag className="mx-auto text-[var(--accent-purple)] mb-4" size={40} />
             <h2 className="font-serif text-2xl mb-2">Cart is empty</h2>
-            <p className="font-sans text-sm text-[var(--text-muted)] mb-6">Add artworks to your cart before checking out.</p>
+            <p className="font-sans text-sm text-[var(--text-muted)] mb-6">Add artworks or studio materials to your cart before checking out.</p>
             <Link href="/art" className="px-6 py-2.5 bg-[var(--accent-purple)] text-white rounded-full font-mono text-xs uppercase tracking-widest hover:bg-[var(--accent-orange)] transition-colors">
               Go to Art Shop
             </Link>
@@ -483,7 +484,7 @@ export default function CheckoutPage() {
                   <MapPin className="text-[var(--accent-purple)] shrink-0 mt-0.5" size={18} />
                   <div className="text-xs text-[var(--text-muted)] leading-relaxed">
                     <p className="font-serif font-bold text-sm text-[var(--foreground)] mb-0.5">Artsy by Oma Studio Pickup</p>
-                    <p>Awka, Anambra State, Nigeria. We will prepare your artwork with a certificate of authenticity and email you pickup details right after payment.</p>
+                    <p>Awka, Anambra State, Nigeria. We will prepare your order and email you pickup details right after payment.</p>
                   </div>
                 </div>
               )}
@@ -509,15 +510,15 @@ export default function CheckoutPage() {
             {/* Items */}
             <div className="flex flex-col gap-4 border-b border-[var(--border-soft)] pb-5 max-h-60 overflow-y-auto">
               {cart.map((item) => (
-                <div key={item.artworkId} className="flex gap-4 items-center">
+                <div key={`${item.productType}:${item.productId}`} className="flex gap-4 items-center">
                   <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-[var(--border-soft)] bg-[var(--surface-soft)] flex-shrink-0">
                     <Image src={item.image} alt={item.title} fill className="object-cover" />
                   </div>
                   <div className="flex-grow min-w-0">
                     <h4 className="font-serif text-sm font-semibold truncate text-[var(--foreground)]">{item.title}</h4>
-                    <span className="font-mono text-[10px] text-[var(--text-muted)]">1-of-1 Artwork</span>
+                    <span className="font-mono text-[10px] text-[var(--text-muted)]">{item.productType === 'material' ? `Quantity: ${item.quantity}` : '1-of-1 Artwork'}</span>
                   </div>
-                  <span className="font-mono text-xs font-semibold">₦{item.price.toLocaleString()}</span>
+                  <span className="font-mono text-xs font-semibold">₦{(item.price * item.quantity).toLocaleString()}</span>
                 </div>
               ))}
             </div>
@@ -570,7 +571,7 @@ export default function CheckoutPage() {
             </button>
 
             <p className="text-[10px] font-sans text-center text-[var(--text-muted)] leading-relaxed">
-              We process secure payments in Nigerian Naira. Your artwork remains available to others until payment status is server-verified.
+              We process secure payments in Nigerian Naira. Your items remain available to others until payment status is server-verified.
             </p>
           </div>
 

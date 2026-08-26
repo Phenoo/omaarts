@@ -84,18 +84,20 @@ export async function processSuccessfulPayment(params: {
       if (order.paymentStatus === 'PAID') return { alreadyProcessed: true };
       if (order.paymentStatus === 'FAILED') throw new Error('This order payment is no longer active.');
 
-      const artworkRefs = order.items.map((item) => adminDb.collection('artworks').doc(item.artworkId));
-      const artworkSnapshots = await Promise.all(artworkRefs.map((ref) => transaction.get(ref)));
+      const productRefs = order.items.map((item) => adminDb.collection(item.productType === 'material' ? 'materials' : 'artworks').doc(item.productId || item.artworkId || ''));
+      const productSnapshots = await Promise.all(productRefs.map((ref) => transaction.get(ref)));
       for (let index = 0; index < order.items.length; index += 1) {
-        const artworkSnapshot = artworkSnapshots[index];
+        const snapshot = productSnapshots[index];
         const item = order.items[index];
-        if (!artworkSnapshot.exists) throw new Error(`Artwork ${item.artworkId} is no longer available.`);
-        const artwork = artworkSnapshot.data() || {};
-        // Keep honoring this order after the soft TTL if no other checkout has
-        // claimed the artwork. A later reservation overwrites reservationId and
-        // is the authoritative signal that the piece has moved on.
-        const reservedForOrder = artwork.reservationId === id;
-        if (!reservedForOrder) throw new Error(`Artwork "${item.title}" is no longer reserved for this order.`);
+        if (!snapshot.exists) throw new Error(`${item.productType === 'material' ? 'Material' : 'Artwork'} "${item.title}" is no longer available.`);
+        const product = snapshot.data() || {};
+        if (item.productType !== 'material') {
+          // Keep honoring this order after the soft TTL if no other checkout has
+          // claimed the artwork. A later reservation overwrites reservationId.
+          if (product.reservationId !== id) throw new Error(`Artwork "${item.title}" is no longer reserved for this order.`);
+        } else if (product.inventoryQty < item.quantity || product.availableForSale === false) {
+          throw new Error(`Material "${item.title}" no longer has enough stock.`);
+        }
       }
 
       transaction.update(targetRef, {
@@ -105,21 +107,28 @@ export async function processSuccessfulPayment(params: {
       });
 
       for (let index = 0; index < order.items.length; index += 1) {
-        const artworkRef = artworkRefs[index];
+        const productRef = productRefs[index];
         const item = order.items[index];
-        transaction.update(artworkRef, {
-          status: 'SOLD',
-          inventoryQty: 0,
-          availableForSale: false,
-          reservationId: null,
-          reservationExpiresAt: null,
-          updatedAt: new Date().toISOString(),
-        });
+        const product = productSnapshots[index].data() || {};
+        if (item.productType === 'material') {
+          const remaining = product.inventoryQty - item.quantity;
+          transaction.update(productRef, {
+            inventoryQty: remaining,
+            reservedQty: Math.max(0, (product.reservedQty || 0) - item.quantity),
+            availableForSale: remaining > 0,
+            updatedAt: new Date().toISOString(),
+          });
+        } else {
+          transaction.update(productRef, {
+            status: 'SOLD', inventoryQty: 0, availableForSale: false,
+            reservationId: null, reservationExpiresAt: null, updatedAt: new Date().toISOString(),
+          });
+        }
 
         const movementRef = adminDb.collection('inventoryMovements').doc();
         const movementDoc: InventoryMovement = {
           id: movementRef.id,
-          artworkId: item.artworkId,
+          artworkId: item.productId || item.artworkId || '',
           type: 'OUT',
           quantity: item.quantity,
           reason: 'ONLINE_PURCHASE',
@@ -134,7 +143,7 @@ export async function processSuccessfulPayment(params: {
         id: saleRef.id,
         invoiceNumber: order.orderNumber,
         type: 'ONLINE',
-        category: 'ARTWORK',
+        category: order.items.some((item) => item.productType === 'material') ? 'OTHER' : 'ARTWORK',
         referenceId: id,
         description: `Order Purchase: ${order.items.map((item) => item.title).join(', ')}`,
         quantity: order.items.reduce((total, item) => total + item.quantity, 0),
@@ -196,20 +205,17 @@ export async function markPaymentFailed(params: {
     } else {
       const order = targetDoc.data() as Order;
       if (order.paystackReference !== reference || order.paymentStatus === 'PAID') return { ignored: true };
-      const artworkRefs = order.items.map((item) => adminDb.collection('artworks').doc(item.artworkId));
-      const artworkSnapshots = await Promise.all(artworkRefs.map((ref) => transaction.get(ref)));
+      const productRefs = order.items.map((item) => adminDb.collection(item.productType === 'material' ? 'materials' : 'artworks').doc(item.productId || item.artworkId || ''));
+      const productSnapshots = await Promise.all(productRefs.map((ref) => transaction.get(ref)));
       transaction.update(targetRef, { paymentStatus: 'FAILED', fulfilmentStatus: 'CANCELLED', paymentFailureReason: reason, updatedAt: new Date().toISOString() });
-      artworkSnapshots.forEach((snapshot, index) => {
+      productSnapshots.forEach((snapshot, index) => {
         if (!snapshot.exists) return;
-        const artwork = snapshot.data() || {};
-        if (artwork.reservationId === id) {
-          transaction.update(artworkRefs[index], {
-            status: 'AVAILABLE',
-            inventoryQty: 1,
-            availableForSale: true,
-            reservationId: null,
-            reservationExpiresAt: null,
-            updatedAt: new Date().toISOString(),
+        const product = snapshot.data() || {};
+        const item = order.items[index];
+        if (item.productType !== 'material' && product.reservationId === id) {
+          transaction.update(productRefs[index], {
+            status: 'AVAILABLE', inventoryQty: 1, availableForSale: true,
+            reservationId: null, reservationExpiresAt: null, updatedAt: new Date().toISOString(),
           });
         }
       });

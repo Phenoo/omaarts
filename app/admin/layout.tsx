@@ -17,7 +17,8 @@ import {
   LogOut,
   Menu,
   X,
-  Palette
+  Palette,
+  Box
 } from 'lucide-react';
 
 function AdminLayoutContent({ children }: { children: React.ReactNode }) {
@@ -45,6 +46,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
     { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
     { label: 'Activities', href: '/admin/activities', icon: Paintbrush },
     { label: 'Artworks', href: '/admin/artworks', icon: Palette },
+    { label: 'Materials', href: '/admin/materials', icon: Box },
     { label: 'Bookings', href: '/admin/bookings', icon: CalendarRange },
     { label: 'Orders', href: '/admin/orders', icon: ShoppingBag },
     { label: 'Sales Ledger', href: '/admin/sales', icon: Coins },

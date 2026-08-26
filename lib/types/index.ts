@@ -83,6 +83,25 @@ export interface Artwork {
   reservationExpiresAt?: string;
 }
 
+/** A physical studio/shop item that is not an original artwork. */
+export interface Material {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  category: string;
+  images: string[];
+  price: number;
+  currency: 'NGN';
+  inventoryQty: number;
+  reservedQty?: number;
+  availableForSale: boolean;
+  featured: boolean;
+  status: 'AVAILABLE' | 'ARCHIVED';
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Category {
   id: string;
   name: string;
@@ -142,7 +161,10 @@ export type FulfilmentStatus =
   | 'REFUNDED';
 
 export interface OrderItem {
-  artworkId: string;
+  /** New orders use productType/productId; artworkId remains for old orders. */
+  productType?: 'artwork' | 'material';
+  productId?: string;
+  artworkId?: string;
   title: string;
   price: number; // in NGN
   quantity: number;
@@ -293,7 +315,7 @@ export interface AuditLog {
   id: string;
   adminUid: string;
   action: string; // e.g. "PRICE_CHANGED", "ARTWORK_CREATED", "BOOKING_CANCELLED"
-  resourceType: 'activity' | 'artwork' | 'booking' | 'order' | 'sale' | 'settings';
+  resourceType: 'activity' | 'artwork' | 'material' | 'booking' | 'order' | 'sale' | 'settings';
   resourceId: string;
   beforeInfo?: Record<string, unknown>;
   afterInfo?: Record<string, unknown>;
