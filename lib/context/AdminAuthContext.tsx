@@ -107,6 +107,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     setLoading(true);
+    await fetch('/api/admin/session', { method: 'DELETE', cache: 'no-store' }).catch(() => undefined);
     await signOut(auth);
     setUser(null);
     setAdminProfile(null);

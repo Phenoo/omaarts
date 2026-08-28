@@ -11,6 +11,56 @@ export type PublicArtwork = Artwork & {
 export type PublicExperience = Activity;
 export type PublicMaterial = Material;
 
+const HIDDEN_ARTWORK_TITLES = new Set(['testing', 'testing this']);
+const HIDDEN_ARTWORK_SLUGS = new Set(['testing', 'testing-this']);
+const ARTWORK_ROUTE_ALIASES: Record<string, string[]> = {
+  // Keep the existing public URL (including its historical spelling) while
+  // resolving it to the correctly named artwork record.
+  'rio-de-jainero-2025': ['rio-de-janeiro-2025'],
+  'dubai-2025': ['dubai-2025'],
+};
+
+function isPublishedArtwork(data: {
+  id?: unknown;
+  title?: unknown;
+  slug?: unknown;
+  status?: unknown;
+  published?: unknown;
+  isPublished?: unknown;
+  visibility?: unknown;
+}) {
+  const title = typeof data.title === 'string' ? data.title.trim().toLowerCase() : '';
+  const slug = typeof data.slug === 'string' ? data.slug.trim().toLowerCase() : '';
+  const id = typeof data.id === 'string' ? data.id.trim().toLowerCase() : '';
+  const visibility = typeof data.visibility === 'string' ? data.visibility.toLowerCase() : '';
+  return data.status !== 'ARCHIVED'
+    && data.published !== false
+    && data.isPublished !== false
+    && visibility !== 'private'
+    && visibility !== 'unpublished'
+    && !HIDDEN_ARTWORK_TITLES.has(title)
+    && !HIDDEN_ARTWORK_SLUGS.has(slug)
+    && !HIDDEN_ARTWORK_SLUGS.has(id);
+}
+
+function routeMatchesArtwork(routeSlug: string, artwork: PublicArtwork) {
+  const haystack = `${artwork.title} ${artwork.description || ''} ${artwork.story || ''}`.toLowerCase();
+  // These routes previously pointed at the wrong records. Require the place
+  // name in the artwork content before accepting an alias match.
+  if (routeSlug === 'rio-de-jainero-2025') return haystack.includes('rio de janeiro');
+  if (routeSlug === 'dubai-2025') return haystack.includes('dubai');
+  const candidates = ARTWORK_ROUTE_ALIASES[routeSlug] || [routeSlug];
+  return candidates.includes(artwork.slug) || candidates.includes(artwork.id);
+}
+
+function normalizeRouteArtwork(routeSlug: string, artwork: PublicArtwork): PublicArtwork {
+  if (routeSlug === 'dubai-2025' && artwork.title.trim().toLowerCase() === 'uae 2025') {
+    return { ...artwork, title: 'Dubai 2025', slug: 'dubai-2025' };
+  }
+  if (routeSlug === 'rio-de-jainero-2025') return { ...artwork, slug: 'rio-de-jainero-2025' };
+  return artwork;
+}
+
 function cleanDate(value: unknown) {
   if (typeof value === 'string') return value;
   if (value && typeof value === 'object' && 'toDate' in value && typeof value.toDate === 'function') {
@@ -34,8 +84,13 @@ function normalizeArtwork(id: string, data: Record<string, unknown>): PublicArtw
     ? { ...artwork, status: 'AVAILABLE' as const, availableForSale: true, inventoryQty: Math.max(artwork.inventoryQty || 0, 1) }
     : artwork;
 
+  const titleYear = typeof publicArtwork.title === 'string'
+    ? [...publicArtwork.title.matchAll(/\b(?:19|20)\d{2}\b/g)].at(-1)?.[0]
+    : undefined;
+
   return {
     ...publicArtwork,
+    ...(titleYear ? { year: titleYear } : {}),
     images: Array.isArray(publicArtwork.images) && publicArtwork.images.length > 0 ? publicArtwork.images : ['/images/artist-studio.png'],
     availabilityLabel:
       publicArtwork.status === 'AVAILABLE' && publicArtwork.availableForSale && publicArtwork.inventoryQty > 0 && publicArtwork.price > 0 ? 'Available' : 'Price on request',
@@ -51,7 +106,7 @@ const getFirebaseArtworks = unstable_cache(async (): Promise<PublicArtwork[]> =>
     if (snapshot.empty) return [];
     return snapshot.docs
       .map((doc) => normalizeArtwork(doc.id, doc.data()))
-      .filter((artwork) => artwork.status !== 'RESERVED')
+      .filter((artwork) => artwork.status !== 'RESERVED' && isPublishedArtwork(artwork))
       .sort((a, b) => Number(b.featured) - Number(a.featured) || (b.year || '').localeCompare(a.year || ''));
   } catch (error) {
     console.error('Failed to fetch artworks from Firebase backend:', error);
@@ -111,8 +166,9 @@ export async function getPublicArtwork(slug: string): Promise<PublicArtwork | nu
       const docSnap = await adminDb.collection('artworks').doc(slug).get();
       if (docSnap.exists) {
         const data = docSnap.data();
-        if (data && data.status !== 'ARCHIVED') {
-          return normalizeArtwork(docSnap.id, data);
+        if (data && isPublishedArtwork(data)) {
+          const artwork = normalizeArtwork(docSnap.id, data);
+          if (isPublishedArtwork(artwork) && routeMatchesArtwork(slug, artwork)) return normalizeRouteArtwork(slug, artwork);
         }
       }
 
@@ -121,8 +177,9 @@ export async function getPublicArtwork(slug: string): Promise<PublicArtwork | nu
       if (!querySnap.empty) {
         const firstDoc = querySnap.docs[0];
         const data = firstDoc.data();
-        if (data && data.status !== 'ARCHIVED') {
-          return normalizeArtwork(firstDoc.id, data);
+        if (data && isPublishedArtwork(data)) {
+          const artwork = normalizeArtwork(firstDoc.id, data);
+          if (isPublishedArtwork(artwork) && routeMatchesArtwork(slug, artwork)) return normalizeRouteArtwork(slug, artwork);
         }
       }
     } catch (error) {
@@ -131,7 +188,8 @@ export async function getPublicArtwork(slug: string): Promise<PublicArtwork | nu
   }
 
   const artworks = await getPublicArtworks();
-  return artworks.find((artwork) => artwork.slug === slug || artwork.id === slug) || null;
+  const match = artworks.find((artwork) => routeMatchesArtwork(slug, artwork));
+  return match ? normalizeRouteArtwork(slug, match) : null;
 }
 
 export async function getPublicExperiences() {

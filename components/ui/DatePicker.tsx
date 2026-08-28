@@ -91,6 +91,7 @@ export default function DatePicker({
           key={`day-${day}`}
           type="button"
           disabled={isDisabled}
+          aria-label={`${monthNames[month]} ${day}, ${year}${isDisabled ? ' unavailable' : ''}`}
           onClick={() => onChange(dateStr)}
           className={`h-10 w-10 rounded-full flex items-center justify-center font-mono text-sm transition-all relative cursor-pointer
             ${isSelected ? 'bg-[var(--accent-purple)] text-white font-bold scale-110 shadow-md z-10' : ''}
@@ -110,16 +111,17 @@ export default function DatePicker({
   };
 
   return (
-    <div className="border border-[var(--border-soft)] rounded-2xl p-5 bg-white shadow-sm max-w-xl w-full mx-auto">
+    <div className="border border-[var(--border-soft)] rounded-2xl p-5 bg-white shadow-sm max-w-xl w-full mx-auto" role="group" aria-label="Choose booking date">
       {/* Month Selector */}
       <div className="flex items-center justify-between mb-5 border-b border-[var(--border-soft)] pb-3">
-        <h3 className="font-serif text-lg text-[var(--foreground)]">
+        <h3 className="font-serif text-lg text-[var(--foreground)]" aria-live="polite">
           {monthNames[month]} {year}
         </h3>
         <div className="flex gap-1">
           <button
             type="button"
             onClick={handlePrevMonth}
+            aria-label="Previous month"
             className="p-2 rounded-full border border-[var(--border-soft)] hover:bg-[var(--surface-soft)] hover:text-[var(--accent-purple)] transition-colors cursor-pointer"
           >
             <ChevronLeft size={16} />
@@ -127,6 +129,7 @@ export default function DatePicker({
           <button
             type="button"
             onClick={handleNextMonth}
+            aria-label="Next month"
             className="p-2 rounded-full border border-[var(--border-soft)] hover:bg-[var(--surface-soft)] hover:text-[var(--accent-purple)] transition-colors cursor-pointer"
           >
             <ChevronRight size={16} />

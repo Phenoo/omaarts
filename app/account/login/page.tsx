@@ -111,7 +111,7 @@ export default function LoginPage() {
             </div>
 
             {/* Email/Password Form */}
-            <form onSubmit={handleEmailLogin} className="space-y-5">
+            <form method="post" onSubmit={handleEmailLogin} className="space-y-5">
               {error && (
                 <div className="px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
                   {error}

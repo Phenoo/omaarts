@@ -120,11 +120,11 @@ async function sendWithResend(payload: EmailDispatchPayload) {
 
     const data = await res.json();
     if (!res.ok) {
-      console.error('Resend API error:', data);
+      console.error('Resend API error:', res.status);
       return false;
     }
 
-    console.log(`Email successfully sent via Resend to ${recipients.join(', ')}. ID: ${data.id}`);
+    console.log(`Email successfully sent via Resend. ID: ${data.id}`);
     return true;
   } catch (err) {
     console.error('Failed to dispatch email via Resend:', err);
@@ -158,7 +158,7 @@ async function sendWithSmtp(payload: EmailDispatchPayload) {
       text: payload.text,
     });
 
-    console.log(`Email successfully sent via Nodemailer to ${recipients.join(', ')}. ID: ${info.messageId}`);
+    console.log(`Email successfully sent via Nodemailer. ID: ${info.messageId}`);
     return true;
   } catch (err) {
     console.error('Failed to dispatch email via Nodemailer:', err);

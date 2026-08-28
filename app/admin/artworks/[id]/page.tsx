@@ -258,7 +258,7 @@ export default function EditArtworkPage() {
       </div>
 
       <div className="bg-white rounded-3xl w-full shadow-sm overflow-hidden border border-[var(--border-soft)]">
-        <form onSubmit={handleSubmit} className="p-6 md:p-8 flex flex-col gap-6 text-sm" noValidate>
+        <form method="post" onSubmit={handleSubmit} className="p-6 md:p-8 flex flex-col gap-6 text-sm" noValidate>
           
           {/* Top Error Alert Banner */}
           {submitError && (

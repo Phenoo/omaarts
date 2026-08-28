@@ -231,7 +231,7 @@ export default function AdminSalesPage() {
             </div>
 
             {/* Content Form */}
-            <form onSubmit={handleCreateManualSale} className="p-6 overflow-y-auto flex flex-col gap-6 text-sm text-[var(--foreground)]">
+            <form method="post" onSubmit={handleCreateManualSale} className="p-6 overflow-y-auto flex flex-col gap-6 text-sm text-[var(--foreground)]">
               {success ? (
                 <div className="py-8 text-center flex flex-col items-center gap-4 text-green-600 font-serif">
                   <CheckCircle2 size={40} className="text-green-500" />

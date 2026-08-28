@@ -49,6 +49,8 @@ export default function TimeSlotPicker({
             key={slot}
             type="button"
             disabled={isBooked}
+            aria-label={`${formatTime(slot)}${isBooked ? ', unavailable' : ''}`}
+            aria-pressed={isSelected}
             onClick={() => onChange(slot)}
             className={`py-3 px-4 rounded-xl font-mono text-xs uppercase tracking-widest text-center border transition-all cursor-pointer
               ${isSelected 

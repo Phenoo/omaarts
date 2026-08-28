@@ -26,7 +26,7 @@ async function sendReceipt(adminDb: NonNullable<ReturnType<typeof getAdminContex
     if (type === 'booking') await sendBookingConfirmationEmail(data as Parameters<typeof sendBookingConfirmationEmail>[0]);
     else await sendOrderConfirmationEmail(data as Parameters<typeof sendOrderConfirmationEmail>[0]);
   } catch (error) {
-    console.error('Webhook receipt email failed:', error);
+    console.error('Webhook receipt email failed:', error instanceof Error ? error.name : 'unknown');
   }
 }
 
@@ -76,7 +76,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ status: 'success' });
   } catch (error: unknown) {
-    console.error('Webhook execution failed:', error);
+    console.error('Webhook execution failed:', error instanceof Error ? error.name : 'unknown');
     return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
   }
 }

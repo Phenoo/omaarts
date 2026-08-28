@@ -118,7 +118,7 @@ export default function AdminContentPage() {
         </button>
       </div>
 
-      <form onSubmit={handleSaveCMS} className="bg-white border border-[var(--border-soft)] rounded-2xl p-6 shadow-sm flex flex-col gap-6 max-w-3xl">
+      <form method="post" onSubmit={handleSaveCMS} className="bg-white border border-[var(--border-soft)] rounded-2xl p-6 shadow-sm flex flex-col gap-6 max-w-3xl">
         <h3 className="font-serif text-lg font-semibold text-[var(--foreground)] border-b border-[var(--border-soft)] pb-3 flex items-center gap-1.5">
           <FileText size={18} />
           Edit Site Text Content

@@ -42,19 +42,19 @@ service cloud.firestore {
 
     // Activities collection rules
     match /activities/{activityId} {
-      allow read: if true;
+      allow read: if isStaff() || (resource.data.get('active', false) == true && resource.data.get('published', true) == true && resource.data.get('visibility', 'public') != 'private');
       allow write: if isStaff();
     }
 
     // Artworks collection rules
     match /artworks/{artworkId} {
-      allow read: if true;
+      allow read: if isStaff() || (resource.data.get('status', 'ARCHIVED') != 'ARCHIVED' && resource.data.get('published', true) == true && resource.data.get('isPublished', true) == true && resource.data.get('visibility', 'public') != 'private' && resource.data.get('visibility', 'public') != 'unpublished');
       allow write: if isStaff();
     }
 
     // Materials and other shop goods
     match /materials/{materialId} {
-      allow read: if true;
+      allow read: if isStaff() || (resource.data.get('status', 'ARCHIVED') != 'ARCHIVED' && resource.data.get('published', true) == true && resource.data.get('visibility', 'public') != 'private');
       allow write: if isStaff();
     }
 

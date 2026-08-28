@@ -267,7 +267,7 @@ export default function CheckoutPage() {
           )}
           
           {/* Checkout Form */}
-          <form id="checkout-form" onSubmit={handleSubmit} className="lg:col-span-2 flex flex-col gap-8">
+          <form id="checkout-form" method="post" onSubmit={handleSubmit} className="lg:col-span-2 flex flex-col gap-8">
             
             {/* 1. Contact Details */}
             <div className="section-shell p-6 md:p-8 bg-white/90 flex flex-col gap-6">

@@ -5,11 +5,21 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { auth, db } from '@/lib/firebase/config';
-import { signInWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { signInWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup, type User } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { UserDoc } from '@/lib/types';
 import { isStaffRole } from '@/lib/auth/roles';
 import { ShieldAlert, LogIn, Lock, Mail } from 'lucide-react';
+
+async function establishAdminSession(user: User) {
+  const idToken = await user.getIdToken();
+  const response = await fetch('/api/admin/session', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${idToken}` },
+    cache: 'no-store',
+  });
+  if (!response.ok) throw new Error('Unable to establish a secure session.');
+}
 
 function AdminLoginContent() {
   const router = useRouter();
@@ -57,7 +67,7 @@ function AdminLoginContent() {
         const role = profile.role;
 
         if (isStaffRole(role)) {
-          // Authorized: redirect to dashboard
+          await establishAdminSession(credentials.user);
           router.push('/admin');
         } else {
           // Not authorized: sign out
@@ -70,16 +80,16 @@ function AdminLoginContent() {
         setErrorMsg('User registration records not found in database. Contact Super Admin.');
       }
     } catch (err: unknown) {
-      console.error('Admin login error:', err);
+      console.error('Admin login failed:', err instanceof Error ? err.name : 'unknown');
+      await signOut(auth).catch(() => undefined);
       // Friendly messages for common Auth errors
       const code = typeof err === 'object' && err !== null && 'code' in err ? (err as { code: string }).code : undefined;
-      const message = err instanceof Error ? err.message : 'An unexpected authentication error occurred.';
       if (code === 'auth/invalid-credential' || code === 'auth/user-not-found' || code === 'auth/wrong-password') {
         setErrorMsg('Invalid email or password. Please try again.');
       } else if (code === 'auth/too-many-requests') {
         setErrorMsg('Too many unsuccessful attempts. Access has been temporarily locked. Try again later.');
       } else {
-        setErrorMsg(message);
+        setErrorMsg('Unable to sign in right now. Please try again.');
       }
     } finally {
       setLoading(false);
@@ -107,7 +117,7 @@ function AdminLoginContent() {
         const role = profile.role;
 
         if (isStaffRole(role)) {
-          // Authorized: redirect to dashboard
+          await establishAdminSession(credentials.user);
           router.push('/admin');
         } else {
           // Not authorized: sign out
@@ -120,11 +130,11 @@ function AdminLoginContent() {
         setErrorMsg('Google account not registered as staff. Contact a Super Admin to register your profile.');
       }
     } catch (err: unknown) {
-      console.error('Google sign in error:', err);
+      console.error('Google sign in failed:', err instanceof Error ? err.name : 'unknown');
+      await signOut(auth).catch(() => undefined);
       const code = typeof err === 'object' && err !== null && 'code' in err ? (err as { code: string }).code : undefined;
-      const message = err instanceof Error ? err.message : 'An unexpected Google authentication error occurred.';
       if (code !== 'auth/popup-closed-by-user') {
-        setErrorMsg(message);
+        setErrorMsg('Unable to sign in with Google right now. Please try again.');
       }
     } finally {
       setLoading(false);
@@ -163,14 +173,17 @@ function AdminLoginContent() {
           </div>
         )}
 
-        <form onSubmit={handleLogin} className="flex flex-col gap-5 text-sm text-[var(--foreground)]">
+        <form method="post" onSubmit={handleLogin} className="flex flex-col gap-5 text-sm text-[var(--foreground)]">
           {/* Email */}
           <div className="flex flex-col gap-1.5">
-            <label className="font-mono text-xs uppercase tracking-wider text-[var(--text-muted)] font-medium">Email Address</label>
+            <label htmlFor="admin-email" className="font-mono text-xs uppercase tracking-wider text-[var(--text-muted)] font-medium">Email Address</label>
             <div className="relative">
               <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
               <input
                 type="email"
+                id="admin-email"
+                name="username"
+                autoComplete="username"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -182,11 +195,14 @@ function AdminLoginContent() {
 
           {/* Password */}
           <div className="flex flex-col gap-1.5">
-            <label className="font-mono text-xs uppercase tracking-wider text-[var(--text-muted)] font-medium">Password</label>
+            <label htmlFor="admin-password" className="font-mono text-xs uppercase tracking-wider text-[var(--text-muted)] font-medium">Password</label>
             <div className="relative">
               <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
               <input
                 type="password"
+                id="admin-password"
+                name="password"
+                autoComplete="current-password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

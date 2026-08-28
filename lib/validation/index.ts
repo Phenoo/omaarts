@@ -141,6 +141,14 @@ export function validateArtworkInput(data: Partial<Artwork>): ValidationError[] 
     errors.push({ field: 'medium', message: 'Medium is required (e.g. Acrylic on Canvas)' });
   }
 
+  if (data.year !== undefined && !/^\d{4}$/.test(String(data.year).trim())) {
+    errors.push({ field: 'year', message: 'Year must be a four-digit year' });
+  }
+  const titleYear = data.title?.match(/\b(?:19|20)\d{2}\b/)?.[0];
+  if (titleYear && data.year && String(data.year).trim() !== titleYear) {
+    errors.push({ field: 'year', message: `Year must match the year in the title (${titleYear})` });
+  }
+
   if (!data.dimensions?.trim()) {
     errors.push({ field: 'dimensions', message: 'Dimensions are required' });
   }

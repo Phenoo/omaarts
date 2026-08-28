@@ -277,7 +277,7 @@ export default function AdminBookingManagePage() {
             </button>
 
             {isRescheduling && (
-              <form onSubmit={handleRescheduleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-[var(--border-soft)]">
+              <form method="post" onSubmit={handleRescheduleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-[var(--border-soft)]">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-mono text-[var(--text-muted)] uppercase tracking-wider font-semibold">Date</label>
                   <input

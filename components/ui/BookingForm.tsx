@@ -156,7 +156,7 @@ export default function BookingForm({ activity, onSuccess }: BookingFormProps) {
   const isBookingOnly = activity.pricingModel === 'BOOKING_ONLY' || activity.pricingModel === 'CUSTOM_QUOTE';
 
   return (
-    <form onSubmit={handleSubmit} className="p-0 bg-transparent  shadow-none  border-0  rounded-none  backdrop-blur-md w-full md:max-w-3xl mx-auto flex flex-col gap-8 text-[var(--foreground)]">
+    <form method="post" onSubmit={handleSubmit} className="p-0 bg-transparent  shadow-none  border-0  rounded-none  backdrop-blur-md w-full md:max-w-3xl mx-auto flex flex-col gap-8 text-[var(--foreground)]">
       <div>
         <h2 className="font-serif text-3xl mb-2 text-[var(--accent-purple)]">Reserve Your Experience</h2>
         <p className="font-sans text-sm text-[var(--text-muted)]">
@@ -242,18 +242,19 @@ export default function BookingForm({ activity, onSuccess }: BookingFormProps) {
             ))}
           </select>
           {getFieldError('numberOfGuests') && (
-            <span className="text-red-500 text-xs font-mono">{getFieldError('numberOfGuests')}</span>
+            <span role="alert" className="text-red-500 text-xs font-mono">{getFieldError('numberOfGuests')}</span>
           )}
         </div>
 
         {/* Hourly Duration Selector (Karaoke, etc.) */}
         {(activity.pricingModel === 'TIERED' || activity.pricingModel === 'PER_HOUR') && (
           <div className="flex flex-col gap-2">
-            <label className="font-mono text-xs uppercase tracking-wider text-[var(--text-muted)] font-medium flex items-center gap-1.5">
+            <label htmlFor="booking-duration" className="font-mono text-xs uppercase tracking-wider text-[var(--text-muted)] font-medium flex items-center gap-1.5">
               <Clock size={14} className="text-[var(--accent-purple)]" />
               Duration (Hours)
             </label>
             <select
+              id="booking-duration"
               value={durationHours}
               onChange={(e) => setDurationHours(parseInt(e.target.value, 10))}
               className="w-full bg-white border border-[var(--border-soft)] rounded-xl py-2.5 px-3 font-mono text-sm focus:outline-none focus:border-[var(--accent-purple)] transition-colors cursor-pointer"
@@ -282,7 +283,7 @@ export default function BookingForm({ activity, onSuccess }: BookingFormProps) {
           }}
         />
         {getFieldError('date') && (
-          <span className="text-red-500 text-xs font-mono">{getFieldError('date')}</span>
+          <span role="alert" className="text-red-500 text-xs font-mono">{getFieldError('date')}</span>
         )}
       </div>
 
@@ -302,7 +303,7 @@ export default function BookingForm({ activity, onSuccess }: BookingFormProps) {
             }}
           />
           {getFieldError('startTime') && (
-            <span className="text-red-500 text-xs font-mono">{getFieldError('startTime')}</span>
+            <span role="alert" className="text-red-500 text-xs font-mono">{getFieldError('startTime')}</span>
           )}
         </div>
       )}
@@ -313,9 +314,13 @@ export default function BookingForm({ activity, onSuccess }: BookingFormProps) {
         
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div className="flex flex-col gap-1">
-            <label className="font-mono text-xs uppercase tracking-wider text-[var(--text-muted)]" id="err-firstName">First Name</label>
+            <label htmlFor="booking-first-name" className="font-mono text-xs uppercase tracking-wider text-[var(--text-muted)]" id="err-firstName">First Name</label>
             <input
               type="text"
+              id="booking-first-name"
+              name="firstName"
+              autoComplete="given-name"
+              aria-invalid={Boolean(getFieldError('firstName'))}
               value={firstName}
               onChange={(e) => {
                 setFirstName(e.target.value);
@@ -325,14 +330,18 @@ export default function BookingForm({ activity, onSuccess }: BookingFormProps) {
               className="w-full bg-white border border-[var(--border-soft)] rounded-xl py-3 px-4 focus:outline-none focus:border-[var(--accent-purple)] transition-colors font-sans text-sm"
             />
             {getFieldError('firstName') && (
-              <span className="text-red-500 text-xs font-mono">{getFieldError('firstName')}</span>
+              <span role="alert" className="text-red-500 text-xs font-mono">{getFieldError('firstName')}</span>
             )}
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="font-mono text-xs uppercase tracking-wider text-[var(--text-muted)]" id="err-lastName">Last Name</label>
+            <label htmlFor="booking-last-name" className="font-mono text-xs uppercase tracking-wider text-[var(--text-muted)]" id="err-lastName">Last Name</label>
             <input
               type="text"
+              id="booking-last-name"
+              name="lastName"
+              autoComplete="family-name"
+              aria-invalid={Boolean(getFieldError('lastName'))}
               value={lastName}
               onChange={(e) => {
                 setLastName(e.target.value);
@@ -342,16 +351,20 @@ export default function BookingForm({ activity, onSuccess }: BookingFormProps) {
               className="w-full bg-white border border-[var(--border-soft)] rounded-xl py-3 px-4 focus:outline-none focus:border-[var(--accent-purple)] transition-colors font-sans text-sm"
             />
             {getFieldError('lastName') && (
-              <span className="text-red-500 text-xs font-mono">{getFieldError('lastName')}</span>
+              <span role="alert" className="text-red-500 text-xs font-mono">{getFieldError('lastName')}</span>
             )}
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div className="flex flex-col gap-1">
-            <label className="font-mono text-xs uppercase tracking-wider text-[var(--text-muted)]" id="err-email">Email Address</label>
+            <label htmlFor="booking-email" className="font-mono text-xs uppercase tracking-wider text-[var(--text-muted)]" id="err-email">Email Address</label>
             <input
               type="email"
+              id="booking-email"
+              name="email"
+              autoComplete="email"
+              aria-invalid={Boolean(getFieldError('email'))}
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value);
@@ -361,14 +374,18 @@ export default function BookingForm({ activity, onSuccess }: BookingFormProps) {
               className="w-full bg-white border border-[var(--border-soft)] rounded-xl py-3 px-4 focus:outline-none focus:border-[var(--accent-purple)] transition-colors font-sans text-sm"
             />
             {getFieldError('email') && (
-              <span className="text-red-500 text-xs font-mono">{getFieldError('email')}</span>
+              <span role="alert" className="text-red-500 text-xs font-mono">{getFieldError('email')}</span>
             )}
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="font-mono text-xs uppercase tracking-wider text-[var(--text-muted)]" id="err-phone">Phone Number</label>
+            <label htmlFor="booking-phone" className="font-mono text-xs uppercase tracking-wider text-[var(--text-muted)]" id="err-phone">Phone Number</label>
             <input
               type="tel"
+              id="booking-phone"
+              name="phone"
+              autoComplete="tel"
+              aria-invalid={Boolean(getFieldError('phone'))}
               value={phone}
               onChange={(e) => {
                 setPhone(e.target.value);
@@ -378,14 +395,16 @@ export default function BookingForm({ activity, onSuccess }: BookingFormProps) {
               className="w-full bg-white border border-[var(--border-soft)] rounded-xl py-3 px-4 focus:outline-none focus:border-[var(--accent-purple)] transition-colors font-sans text-sm"
             />
             {getFieldError('phone') && (
-              <span className="text-red-500 text-xs font-mono">{getFieldError('phone')}</span>
+              <span role="alert" className="text-red-500 text-xs font-mono">{getFieldError('phone')}</span>
             )}
           </div>
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="font-mono text-xs uppercase tracking-wider text-[var(--text-muted)]">Special Requests (Optional)</label>
+          <label htmlFor="booking-special-requests" className="font-mono text-xs uppercase tracking-wider text-[var(--text-muted)]">Special Requests (Optional)</label>
           <textarea
+            id="booking-special-requests"
+            name="specialRequests"
             value={specialRequests}
             onChange={(e) => setSpecialRequests(e.target.value)}
             placeholder="Let us know if you have birthday celebrations, allergies, accessibility needs, etc."

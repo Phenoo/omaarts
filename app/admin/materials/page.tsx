@@ -101,7 +101,7 @@ export default function AdminMaterialsPage() {
 
       <section className="bg-white border border-[var(--border-soft)] rounded-2xl shadow-sm p-6 md:p-8">
         <div className="flex items-center gap-3 mb-6"><Plus size={18} className="text-[var(--accent-purple)]" /><h2 className="font-serif text-2xl">Add a material</h2></div>
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <form method="post" onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <label className="flex flex-col gap-1.5 font-mono text-xs uppercase tracking-wider text-[var(--text-muted)]">Name *<input value={title} onChange={(event) => { setTitle(event.target.value); setSlug(slugify(event.target.value)); }} placeholder="Premium acrylic set" className="border border-[var(--border-soft)] rounded-xl py-3 px-4 font-sans text-sm normal-case tracking-normal text-[var(--foreground)]" /></label>
           <label className="flex flex-col gap-1.5 font-mono text-xs uppercase tracking-wider text-[var(--text-muted)]">Slug *<input value={slug} onChange={(event) => setSlug(slugify(event.target.value))} placeholder="premium-acrylic-set" className="border border-[var(--border-soft)] rounded-xl py-3 px-4 font-mono text-xs normal-case tracking-normal text-[var(--foreground)]" /></label>
           <label className="flex flex-col gap-1.5 font-mono text-xs uppercase tracking-wider text-[var(--text-muted)]">Price (NGN) *<input type="number" min="1" step="1" value={price} onChange={(event) => setPrice(event.target.value)} placeholder="15000" className="border border-[var(--border-soft)] rounded-xl py-3 px-4 font-mono text-sm normal-case tracking-normal text-[var(--foreground)]" /></label>

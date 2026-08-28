@@ -241,7 +241,7 @@ export default function EditActivityPage() {
       </div>
 
       <div className="bg-white rounded-3xl w-full shadow-sm overflow-hidden border border-[var(--border-soft)]">
-        <form onSubmit={handleSubmit} className="p-6 md:p-8 flex flex-col gap-6 text-sm">
+        <form method="post" onSubmit={handleSubmit} className="p-6 md:p-8 flex flex-col gap-6 text-sm">
           {submitError && (
             <div className="p-4 bg-red-50 border border-red-200 text-red-600 rounded-xl text-xs font-mono">
               {submitError}

@@ -20,6 +20,16 @@ function sanitizeFileName(name: string) {
   return `${stem || 'image'}${extension}`;
 }
 
+function sanitizeRequestedPath(value: string, folder: string) {
+  const normalized = value.replace(/\\/g, '/').replace(/^\/+|\/+$/g, '');
+  const allowedFolders = new Set(['artworks', 'activities', 'gallery', 'site']);
+  const firstSegment = normalized.split('/')[0];
+  if (!allowedFolders.has(firstSegment) || normalized.includes('..') || normalized.includes('//')) return null;
+  if (normalized.toLowerCase().includes('artwork-temp')) return null;
+  if (firstSegment !== folder) return null;
+  return normalized;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { adminAuth, adminDb, adminStorage, isConfigured, error: initError } = getAdminContext();
@@ -46,8 +56,7 @@ export async function POST(req: NextRequest) {
     try {
       decodedToken = await adminAuth.verifyIdToken(idToken);
     } catch (err: unknown) {
-      const errMsg = err instanceof Error ? err.message : 'Token verification failed';
-      console.error('[UploadAPI] Invalid auth token:', errMsg);
+      console.error('[UploadAPI] Invalid auth token:', err instanceof Error ? err.name : 'unknown');
       return NextResponse.json(
         { error: 'Invalid or expired session. Please sign in again.' },
         { status: 401 }
@@ -81,6 +90,7 @@ export async function POST(req: NextRequest) {
     const requestedPath = (formData.get('path') as string | null)?.trim();
     const folder = (formData.get('folder') as string | null)?.trim() || 'artworks';
     const slug = (formData.get('slug') as string | null)?.trim() || 'artwork';
+    const visibility = (formData.get('visibility') as string | null)?.trim().toLowerCase() === 'private' ? 'private' : 'public';
 
     if (!file) {
       return NextResponse.json(
@@ -107,14 +117,25 @@ export async function POST(req: NextRequest) {
     // 5. Determine Storage destination path
     let storagePath: string;
     if (requestedPath) {
-      // Clean and sanitize custom path
-      storagePath = requestedPath.replace(/^\/+|\/+$/g, '');
+      const safePath = sanitizeRequestedPath(requestedPath, folder);
+      if (!safePath) {
+        return NextResponse.json({ error: 'Invalid storage path.' }, { status: 400 });
+      }
+      storagePath = safePath;
     } else {
       const safeFolder = ['artworks', 'activities', 'gallery', 'site'].includes(folder) ? folder : 'artworks';
       const safeSlug = slug.toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '') || 'upload';
+      const uploadSlug = safeSlug === 'artwork-temp' ? 'upload' : safeSlug;
       const uniqueId = crypto.randomUUID();
       const safeName = sanitizeFileName(file.name);
-      storagePath = `${safeFolder}/${safeSlug}/${Date.now()}-${uniqueId}-${safeName}`;
+      storagePath = `${safeFolder}/${uploadSlug}/${Date.now()}-${uniqueId}-${safeName}`;
+    }
+
+    if (visibility === 'private' && !/(^|\/)(private|unpublished)(\/|$)/.test(storagePath)) {
+      return NextResponse.json({ error: 'Private assets must be stored in a private or unpublished path.' }, { status: 400 });
+    }
+    if (visibility === 'public' && /(^|\/)(private|unpublished)(\/|$)/.test(storagePath)) {
+      return NextResponse.json({ error: 'Private storage paths require private visibility.' }, { status: 400 });
     }
 
     // 6. Upload file buffer to Firebase Storage
@@ -127,16 +148,20 @@ export async function POST(req: NextRequest) {
       contentType: file.type,
       metadata: {
         metadata: {
-          firebaseStorageDownloadTokens: downloadToken,
+          ...(visibility === 'public' ? { firebaseStorageDownloadTokens: downloadToken } : {}),
           uploadedBy: uid,
           originalName: file.name,
+          visibility,
         },
-        cacheControl: 'public,max-age=31536000,immutable',
+        cacheControl: visibility === 'public' ? 'public,max-age=31536000,immutable' : 'private,no-store',
       },
     });
 
-    // 7. Format standard persistent Firebase Storage download URL
-    const downloadUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(storagePath)}?alt=media&token=${downloadToken}`;
+    // Public assets use a persistent token URL; private assets receive a short
+    // lived signed URL for an authenticated admin preview only.
+    const downloadUrl = visibility === 'public'
+      ? `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(storagePath)}?alt=media&token=${downloadToken}`
+      : (await fileRef.getSignedUrl({ version: 'v4', action: 'read', expires: Date.now() + 15 * 60 * 1000 }))[0];
 
     return NextResponse.json({
       success: true,
@@ -144,10 +169,9 @@ export async function POST(req: NextRequest) {
       path: storagePath,
     });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Failed to upload image. Please try again.';
-    console.error('[UploadAPI] Unexpected upload failure:', error);
+    console.error('[UploadAPI] Unexpected upload failure:', error instanceof Error ? error.name : 'unknown');
     return NextResponse.json(
-      { error: message },
+      { error: 'Failed to upload image. Please try again.' },
       { status: 500 }
     );
   }

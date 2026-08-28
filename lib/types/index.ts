@@ -246,7 +246,7 @@ export interface BlockedDate {
 
 export interface Enquiry {
   id: string;
-  type: 'corporate' | 'space' | 'private-event' | 'contact' | 'artwork' | 'commission';
+  type: 'corporate' | 'space' | 'private-event' | 'experience-enquiry' | 'contact' | 'artwork' | 'commission';
   name: string;
   company?: string;
   email: string;

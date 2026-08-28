@@ -149,7 +149,7 @@ export default function AdminSettingsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
         
         {/* Left Column: Site settings form */}
-        <form onSubmit={handleSaveSettings} className="bg-white border border-[var(--border-soft)] rounded-2xl p-6 shadow-sm flex flex-col gap-6">
+        <form method="post" onSubmit={handleSaveSettings} className="bg-white border border-[var(--border-soft)] rounded-2xl p-6 shadow-sm flex flex-col gap-6">
           <h3 className="font-serif text-lg font-semibold text-[var(--foreground)] border-b border-[var(--border-soft)] pb-3">Site Configuration</h3>
 
           {saveSuccess && (
@@ -259,7 +259,7 @@ export default function AdminSettingsPage() {
           <h3 className="font-serif text-lg font-semibold text-[var(--foreground)] border-b border-[var(--border-soft)] pb-3">Calendar Blacklists</h3>
 
           {/* Block Date Form */}
-          <form onSubmit={handleAddBlockedDate} className="flex flex-col gap-4 bg-gray-50 border border-gray-100 p-4 rounded-xl font-mono text-xs">
+          <form method="post" onSubmit={handleAddBlockedDate} className="flex flex-col gap-4 bg-gray-50 border border-gray-100 p-4 rounded-xl font-mono text-xs">
             <h4 className="font-serif text-sm text-[var(--accent-purple)] font-bold normal-case">Add Calendar Block</h4>
             
             {blockSuccess && (

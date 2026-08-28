@@ -22,7 +22,7 @@ async function sendReceipt(adminDb: NonNullable<ReturnType<typeof getAdminContex
     if (type === 'booking') await sendBookingConfirmationEmail(data as Parameters<typeof sendBookingConfirmationEmail>[0]);
     else await sendOrderConfirmationEmail(data as Parameters<typeof sendOrderConfirmationEmail>[0]);
   } catch (error) {
-    console.error('Payment receipt email failed:', error);
+    console.error('Payment receipt email failed:', error instanceof Error ? error.name : 'unknown');
   }
 }
 
@@ -80,7 +80,7 @@ export async function GET(request: Request) {
     if (result && 'success' in result && result.success) await sendReceipt(adminDb, type, id);
     return NextResponse.json({ verified: true, type, id, reference, amount, result });
   } catch (error: unknown) {
-    console.error('API verify error:', error);
+    console.error('API verify error:', error instanceof Error ? error.name : 'unknown');
     return responseError(getErrorMessage(error), 500);
   }
 }

@@ -16,6 +16,7 @@ export const runtime = 'nodejs';
 
 const DELIVERY_FEE = 3000;
 const RESERVATION_MINUTES = 15;
+const recentCheckoutRequests = new Map<string, number[]>();
 
 class CheckoutError extends Error {
   status: number;
@@ -27,7 +28,23 @@ class CheckoutError extends Error {
 }
 
 function errorResponse(error: string, status: number) {
-  return NextResponse.json({ success: false, error }, { status });
+  return NextResponse.json({ success: false, error }, { status, headers: { 'Cache-Control': 'no-store' } });
+}
+
+function checkoutRateLimited(ip: string) {
+  const now = Date.now();
+  const recent = (recentCheckoutRequests.get(ip) || []).filter((time) => now - time < 60_000);
+  if (recent.length === 0) recentCheckoutRequests.delete(ip);
+  if (recent.length >= 8) return true;
+  recent.push(now);
+  recentCheckoutRequests.set(ip, recent);
+  return false;
+}
+
+function isIsoDate(value: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
 }
 
 function getErrorMessage(error: unknown) {
@@ -118,7 +135,7 @@ async function markInitializationFailed(adminDb: Firestore, checkoutRef: Documen
   try {
     await markPaymentFailed({ type, id, reference, reason });
   } catch (error) {
-    console.error('Failed to release checkout after Paystack initialization error:', error);
+    console.error('Failed to release checkout after Paystack initialization error:', error instanceof Error ? error.name : 'unknown');
   }
   await adminDb.runTransaction(async (transaction) => {
     const requestSnap = await transaction.get(checkoutRef);
@@ -129,6 +146,8 @@ async function markInitializationFailed(adminDb: Firestore, checkoutRef: Documen
 }
 
 export async function POST(request: Request) {
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+  if (checkoutRateLimited(ip)) return errorResponse('Too many checkout attempts. Please wait a minute and try again.', 429);
   try {
     const body = await request.json() as Record<string, unknown>;
     const type = body.type;
@@ -150,7 +169,7 @@ export async function POST(request: Request) {
       const startTime = stringValue(body.startTime, 'booking time', 10);
       const numberOfGuests = Number(body.numberOfGuests);
       const durationHours = Number(body.durationHours || 1);
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}$/.test(startTime)) throw new CheckoutError('Please choose a valid date and time.');
+      if (!isIsoDate(date) || !/^\d{2}:[0-5]\d$/.test(startTime)) throw new CheckoutError('Please choose a valid date and time.');
       if (!Number.isInteger(numberOfGuests) || numberOfGuests < 1 || numberOfGuests > 100) throw new CheckoutError('Guest count must be between 1 and 100.');
       if (!Number.isInteger(durationHours) || durationHours < 1 || durationHours > 12) throw new CheckoutError('Duration is invalid.');
       const blockedDates = await adminDb.collection('blockedDates').where('date', '==', date).get();
@@ -228,7 +247,7 @@ export async function POST(request: Request) {
         try {
           await sendBookingRequestReceivedEmail(result.booking);
         } catch (error) {
-          console.error('Booking enquiry email failed after the request was saved:', error);
+          console.error('Booking enquiry email failed after the request was saved:', error instanceof Error ? error.name : 'unknown');
         }
         await adminDb.runTransaction(async (transaction) => {
           transaction.update(checkoutRef, { status: 'ENQUIRY_READY', updatedAt: new Date().toISOString() });
@@ -349,7 +368,7 @@ export async function POST(request: Request) {
     }
   } catch (error: unknown) {
     if (error instanceof CheckoutError) return errorResponse(error.message, error.status);
-    console.error('API checkout initialization error:', error);
+    console.error('API checkout initialization error:', error instanceof Error ? error.name : 'unknown');
     return errorResponse('We could not start the payment. Your cart was not charged. Please try again.', 500);
   }
 }

@@ -64,7 +64,7 @@ export default function ExperienceEnquiryForm({ activity }: Props) {
   }
 
   return (
-    <form onSubmit={submit} noValidate className="flex flex-col gap-5">
+    <form method="post" onSubmit={submit} noValidate className="flex flex-col gap-5">
       <div>
         <h3 className="font-serif text-2xl text-[var(--accent-purple)]">Send an enquiry</h3>
         <p className="font-sans text-sm text-[var(--text-muted)] mt-1">

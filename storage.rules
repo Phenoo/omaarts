@@ -22,25 +22,28 @@ service firebase.storage {
 
     // Public website assets can be displayed without a Firebase login.
     match /artworks/{allPaths=**} {
-      allow read: if true;
+      // Existing artwork-temp files are still referenced by published records;
+      // remove those objects after updating their records, then delete this
+      // compatibility exception.
+      allow read: if !allPaths.matches('(^|/)(private|unpublished)(/|$)');
       allow create, update: if isStaff() && isImageUpload();
       allow delete: if isStaff();
     }
 
     match /activities/{allPaths=**} {
-      allow read: if true;
+      allow read: if !allPaths.matches('(^|/)(private|unpublished)(/|$)');
       allow create, update: if isStaff() && isImageUpload();
       allow delete: if isStaff();
     }
 
     match /gallery/{allPaths=**} {
-      allow read: if true;
+      allow read: if !allPaths.matches('(^|/)(private|unpublished)(/|$)');
       allow create, update: if isStaff() && isImageUpload();
       allow delete: if isStaff();
     }
 
     match /site/{allPaths=**} {
-      allow read: if true;
+      allow read: if !allPaths.matches('(^|/)(private|unpublished)(/|$)');
       allow create, update: if isStaff() && isImageUpload();
       allow delete: if isStaff();
     }
