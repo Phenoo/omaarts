@@ -65,3 +65,8 @@ test('customer Google authentication uses a popup flow that does not require cro
   assert.match(authContext, /signInWithPopup\(auth, provider\)/);
   assert.doesNotMatch(authContext, /signInWithRedirect/);
 });
+
+test('content security policy permits the Firebase Google Auth bootstrap script', async () => {
+  const nextConfig = await source('next.config.ts');
+  assert.match(nextConfig, /script-src[^;]*https:\/\/apis\.google\.com/);
+});

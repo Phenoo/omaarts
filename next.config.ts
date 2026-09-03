@@ -80,7 +80,7 @@ const nextConfig: NextConfig = {
         { key: 'X-Content-Type-Options', value: 'nosniff' },
         { key: 'X-Frame-Options', value: 'DENY' },
         { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
-        { key: 'Content-Security-Policy', value: "default-src 'self'; img-src 'self' data: blob: https://firebasestorage.googleapis.com https://storage.googleapis.com; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://api.paystack.co https://api.resend.com; frame-src https://checkout.paystack.com https://*.firebaseapp.com; object-src 'none'; base-uri 'self'; form-action 'self'" },
+        { key: 'Content-Security-Policy', value: "default-src 'self'; img-src 'self' data: blob: https://firebasestorage.googleapis.com https://storage.googleapis.com; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://api.paystack.co https://api.resend.com; frame-src https://checkout.paystack.com https://*.firebaseapp.com; object-src 'none'; base-uri 'self'; form-action 'self'" },
       ],
     }];
   },
