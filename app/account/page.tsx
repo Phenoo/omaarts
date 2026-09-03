@@ -15,7 +15,6 @@ import {
   Clock,
   Loader2,
 } from 'lucide-react';
-import Footer from '@/components/Footer';
 
 interface DashboardStats {
   orderCount: number;
@@ -300,8 +299,6 @@ export default function AccountDashboard() {
           )}
         </div>
       </div>
-
-      <Footer />
     </>
   );
 }
