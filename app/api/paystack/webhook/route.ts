@@ -5,7 +5,6 @@ import { markPaymentFailed, processSuccessfulPayment } from '@/lib/firebase/serv
 import { sendBookingConfirmationEmail, sendOrderConfirmationEmail } from '@/lib/email/resend';
 
 export const dynamic = 'force-dynamic';
-export const preferredRegion = 'auto';
 export const runtime = 'nodejs';
 
 function getErrorMessage(error: unknown) {

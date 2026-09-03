@@ -8,7 +8,7 @@ import Footer from '@/components/Footer';
 import { useCart } from '@/lib/context/CartContext';
 
 interface PageProps {
-  searchParams: Promise<{ type?: string; id?: string; reference?: string; trxref?: string }>;
+  searchParams: Promise<{ type?: string; id?: string; reference?: string; trxref?: string; token?: string }>;
 }
 
 export default function ConfirmationPage({ searchParams }: PageProps) {
@@ -16,6 +16,7 @@ export default function ConfirmationPage({ searchParams }: PageProps) {
   const type = params.type;
   const id = params.id;
   const reference = params.reference || params.trxref;
+  const confirmationToken = params.token;
 
   const [booking, setBooking] = useState<Booking | null>(null);
   const [order, setOrder] = useState<Order | null>(null);
@@ -46,7 +47,12 @@ export default function ConfirmationPage({ searchParams }: PageProps) {
 
     const checkPayment = async () => {
       try {
-        const statusResponse = await fetch(`/api/paystack/status?type=${encodeURIComponent(type)}&id=${encodeURIComponent(id)}${reference ? `&reference=${encodeURIComponent(reference)}` : ''}`, { cache: 'no-store' });
+        const proof = reference
+          ? `&reference=${encodeURIComponent(reference)}`
+          : confirmationToken
+            ? `&token=${encodeURIComponent(confirmationToken)}`
+            : '';
+        const statusResponse = await fetch(`/api/paystack/status?type=${encodeURIComponent(type)}&id=${encodeURIComponent(id)}${proof}`, { cache: 'no-store' });
         if (statusResponse.ok) {
           const data = await statusResponse.json();
           if (type === 'booking') {
@@ -82,7 +88,7 @@ export default function ConfirmationPage({ searchParams }: PageProps) {
       isMounted = false;
       if (timeout) clearTimeout(timeout);
     };
-  }, [id, type, reference, retryToken]);
+  }, [confirmationToken, id, type, reference, retryToken]);
 
   useEffect(() => {
     if (type === 'order' && order?.paymentStatus === 'PAID' && !cartClearedRef.current) {

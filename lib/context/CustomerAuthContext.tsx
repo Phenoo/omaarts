@@ -128,11 +128,13 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
   }, []);
 
   const loginWithGoogle = useCallback(async () => {
-    const [{ auth }, { signInWithPopup, GoogleAuthProvider }] = await Promise.all([
+    const [{ auth }, { signInWithRedirect, GoogleAuthProvider }] = await Promise.all([
       import('../firebase/config'),
       import('firebase/auth'),
     ]);
-    await signInWithPopup(auth, new GoogleAuthProvider());
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    await signInWithRedirect(auth, provider);
   }, []);
 
   const logout = useCallback(async () => {

@@ -69,12 +69,12 @@ export default function SignupPage() {
     setLoading(true);
     try {
       await loginWithGoogle();
-      router.push('/account');
     } catch (err: unknown) {
       const firebaseError = err as { code?: string };
-      if (firebaseError.code !== 'auth/popup-closed-by-user') {
-        setError('Google sign-in failed. Please try again.');
-      }
+      console.error('Customer Google sign-up failed:', firebaseError.code || 'unknown');
+      setError(firebaseError.code === 'auth/unauthorized-domain'
+        ? 'Google sign-up is not authorized for this website. Please contact support.'
+        : 'Google sign-in failed. Please try again.');
     } finally {
       setLoading(false);
     }

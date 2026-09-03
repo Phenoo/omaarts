@@ -13,6 +13,7 @@ import { auth } from '@/lib/firebase/config';
 interface BookingSubmitResult {
   bookingId?: string;
   authorizationUrl?: string;
+  confirmationToken?: string;
   success?: boolean;
   error?: string;
 }
@@ -132,9 +133,9 @@ export default function BookingForm({ activity, onSuccess }: BookingFormProps) {
       if (resData.authorizationUrl) {
         // Redirect client to Paystack Gateway checkout page
         window.location.href = resData.authorizationUrl;
-      } else if (resData.bookingId) {
+      } else if (resData.bookingId && resData.confirmationToken) {
         onSuccess?.(resData);
-        router.push(`/checkout/confirmation?type=booking&id=${resData.bookingId}`);
+        router.push(`/checkout/confirmation?type=booking&id=${encodeURIComponent(resData.bookingId)}&token=${encodeURIComponent(resData.confirmationToken)}`);
       } else {
         throw new Error('Booking request was created, but no follow-up destination was returned.');
       }

@@ -19,21 +19,7 @@ export default function AboutPage() {
             </p>
         </section>
 
-        {/* 2. Portrait */}
-        <section className="mb-20">
-            <div className="aspect-[4/3] relative w-full overflow-hidden mb-4">
-                <Image
-                    src="/images/about-me.jpg"
-                    alt="Oma Achebe Portrait"
-                    fill
-                    className="object-cover"
-                    priority
-                />
-            </div>
-            <p className="font-mono text-xs text-center opacity-50">Photographed in Awka Studio, 2025</p>
-        </section>
-
-        {/* 3. Studio */}
+        {/* 2. Studio */}
         <section className="mb-20">
             <div className="mb-8">
                 <p className="font-mono text-sm uppercase tracking-widest text-[var(--accent-orange)]">The Studio</p>
@@ -53,19 +39,34 @@ export default function AboutPage() {
             </div>
         </section>
 
-        {/* 4. Longer Bio (The Story) */}
-        <section className="mb-20">
-            <h2 className="font-mono text-sm uppercase tracking-widest text-[var(--accent-orange)] mb-8">The Story</h2>
-            <div className="space-y-6 font-sans text-lg leading-relaxed opacity-90">
-                <p>
-                    Oma Achebe is a Nigerian contemporary artist based in Awka, Anambra State. She works primarily with acrylics and mixed media, building images through layered textures, movement, and expressive color.
-                </p>
-                <p>
-                    Her work draws inspiration from Igbo traditions, everyday life, and the dialogue between history and modernity. Across each piece, she examines themes of cultural identity, womanhood, and resilience.
-                </p>
-                <p>
-                    Through this practice, Oma continues to create work that bridges heritage and contemporary expression while reflecting her journey as both artist and entrepreneur.
-                </p>
+        {/* 3. Founder Story */}
+        <section className="mb-20 grid gap-10 md:grid-cols-[0.85fr_1.15fr] md:items-start">
+            <div>
+                <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl bg-[var(--surface-soft)]">
+                    <Image
+                        src="/images/about-me.jpg"
+                        alt="Oma Achebe holding a paintbrush in her studio"
+                        fill
+                        sizes="(max-width: 768px) 92vw, 340px"
+                        className="object-cover"
+                    />
+                </div>
+                <p className="mt-3 font-mono text-xs opacity-50">Oma Achebe, artist and founder</p>
+            </div>
+            <div>
+                <p className="font-mono text-sm uppercase tracking-widest text-[var(--accent-orange)]">About Oma</p>
+                <h2 className="mt-3 font-serif text-4xl tracking-tight md:text-5xl">Meet the artist behind the studio.</h2>
+                <div className="mt-6 space-y-6 font-sans text-lg leading-relaxed opacity-90">
+                    <p>
+                        Oma Achebe is a Nigerian contemporary artist based in Awka, Anambra State. She works primarily with acrylics and mixed media, building images through layered textures, movement, and expressive color.
+                    </p>
+                    <p>
+                        Her work draws inspiration from Igbo traditions, everyday life, and the dialogue between history and modernity. Across each piece, she examines themes of cultural identity, womanhood, and resilience.
+                    </p>
+                    <p>
+                        Through this practice, Oma continues to create work that bridges heritage and contemporary expression while reflecting her journey as both artist and entrepreneur.
+                    </p>
+                </div>
             </div>
         </section>
 

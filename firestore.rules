@@ -24,10 +24,33 @@ service cloud.firestore {
       return request.auth != null && request.auth.uid == userId;
     }
 
+    function isSafeOwnerCreate(userId) {
+      return isOwner(userId) &&
+        request.resource.data.uid == userId &&
+        request.resource.data.role == 'customer' &&
+        request.resource.data.keys().hasOnly([
+          'uid', 'email', 'displayName', 'photoURL', 'phone',
+          'defaultAddress', 'role', 'createdAt', 'updatedAt'
+        ]);
+    }
+
+    function isSafeOwnerUpdate(userId) {
+      return isOwner(userId) &&
+        request.resource.data.uid == resource.data.uid &&
+        request.resource.data.email == resource.data.email &&
+        request.resource.data.role == resource.data.role &&
+        request.resource.data.createdAt == resource.data.createdAt &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'displayName', 'photoURL', 'phone', 'defaultAddress', 'updatedAt'
+        ]);
+    }
+
     // Users collection rules
     match /users/{userId} {
       allow read: if request.auth != null && (request.auth.uid == userId || isStaff());
-      allow write: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow create: if isAdmin() || isSafeOwnerCreate(userId);
+      allow update: if isAdmin() || isSafeOwnerUpdate(userId);
+      allow delete: if isAdmin();
 
       // Wishlist subcollection — only the owning user can read/write
       match /wishlist/{artworkId} {
@@ -102,7 +125,9 @@ service cloud.firestore {
     // Enquiries collection rules
     match /enquiries/{enquiryId} {
       allow read: if isStaff();
-      allow create: if true; // anyone can send contact/event enquiries
+      // Public submissions are validated and written by /api/enquiries using
+      // the Admin SDK, which bypasses client rules.
+      allow create: if false;
       allow update, delete: if isStaff();
     }
 

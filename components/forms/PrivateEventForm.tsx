@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from 'react';
 
-const eventTypes = ['Birthday', 'Date night / couples', "Bridal group", "Girls' night", 'Team / corporate', 'School / community', 'Private studio hire'];
+const eventTypes = ['Birthday', 'Date night / couples', "Bridal group", "Girls' night", 'Team / corporate', 'School / community', 'Private studio hire', 'Others'];
 
 export default function PrivateEventForm() {
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');

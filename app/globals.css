@@ -108,9 +108,10 @@ textarea:focus-visible {
 }
 
 .site-header--hero {
-  border-bottom-color: rgba(255, 255, 255, .0);
-  background: none;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0);
+  border-bottom-color: transparent;
+  background: #f7f1e8;
+  box-shadow: none;
+  backdrop-filter: none;
 }
 
 .site-logo {
@@ -138,8 +139,15 @@ textarea:focus-visible {
 }
 
 .site-header--hero .site-logo {
-  color: white;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, .45);
+  color: var(--foreground);
+  text-shadow: none;
+}
+
+.site-header--hero .icon-button,
+.site-header--hero .menu-button {
+  border-color: transparent;
+  background: transparent;
+  backdrop-filter: none;
 }
 
 .desktop-nav {

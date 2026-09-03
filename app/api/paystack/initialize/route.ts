@@ -184,7 +184,7 @@ export async function POST(request: Request) {
       if (existingRequest.exists) {
         const existing = existingRequest.data() || {};
         if (existing.status === 'READY' && typeof existing.authorizationUrl === 'string') return NextResponse.json({ success: true, bookingId: existing.resourceId, authorizationUrl: existing.authorizationUrl });
-        if (existing.status === 'ENQUIRY_READY') return NextResponse.json({ success: true, bookingId: existing.resourceId, requiresPayment: false });
+        if (existing.status === 'ENQUIRY_READY') return NextResponse.json({ success: true, bookingId: existing.resourceId, confirmationToken: checkoutId, requiresPayment: false });
         return errorResponse('This checkout is already being prepared. Please wait a moment and try again.', 409);
       }
 
@@ -239,7 +239,7 @@ export async function POST(request: Request) {
       if ('existing' in result) {
         const existing = result.existing || {};
         if (existing.status === 'READY' && typeof existing.authorizationUrl === 'string') return NextResponse.json({ success: true, bookingId: existing.resourceId, authorizationUrl: existing.authorizationUrl });
-        if (existing.status === 'ENQUIRY_READY') return NextResponse.json({ success: true, bookingId: existing.resourceId, requiresPayment: false });
+        if (existing.status === 'ENQUIRY_READY') return NextResponse.json({ success: true, bookingId: existing.resourceId, confirmationToken: checkoutId, requiresPayment: false });
         return errorResponse('This checkout is already being prepared. Please wait a moment and try again.', 409);
       }
 
@@ -252,7 +252,7 @@ export async function POST(request: Request) {
         await adminDb.runTransaction(async (transaction) => {
           transaction.update(checkoutRef, { status: 'ENQUIRY_READY', updatedAt: new Date().toISOString() });
         });
-        return NextResponse.json({ success: true, bookingId: result.bookingId, requiresPayment: false });
+        return NextResponse.json({ success: true, bookingId: result.bookingId, confirmationToken: checkoutId, requiresPayment: false });
       }
 
       try {

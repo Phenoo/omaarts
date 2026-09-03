@@ -43,3 +43,25 @@ test('public artwork filtering protects test records and place slug aliases', as
   assert.match(content, /normalizeRouteArtwork/);
   assert.match(content, /isPublishedArtwork/);
 });
+
+test('customer roles and public enquiries are protected by Firestore rules', async () => {
+  const rules = await source('firestore.rules');
+  assert.match(rules, /request\.resource\.data\.role == resource\.data\.role/);
+  assert.match(rules, /affectedKeys\(\)\.hasOnly/);
+  assert.match(rules, /match \/enquiries\/\{enquiryId\}[\s\S]*allow create: if false/);
+  assert.doesNotMatch(rules, /allow write: if request\.auth != null && \(request\.auth\.uid == userId/);
+});
+
+test('payment status requires an unguessable confirmation proof', async () => {
+  const statusRoute = await source('app/api/paystack/status/route.ts');
+  const confirmationPage = await source('app/checkout/confirmation/page.tsx');
+  assert.match(statusRoute, /Confirmation proof is required/);
+  assert.match(statusRoute, /checkoutRequests/);
+  assert.match(confirmationPage, /confirmationToken/);
+});
+
+test('customer Google authentication uses a redirect flow', async () => {
+  const authContext = await source('lib/context/CustomerAuthContext.tsx');
+  assert.match(authContext, /signInWithRedirect\(auth, provider\)/);
+  assert.doesNotMatch(authContext, /signInWithPopup/);
+});

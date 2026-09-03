@@ -50,53 +50,45 @@ export default function HeroCanvas() {
     <section
       id="home-hero"
       ref={containerRef}
-      className="relative w-full h-screen overflow-hidden bg-[var(--background)]"
+      className="relative h-screen w-full overflow-hidden bg-[#f7f1e8] pt-[4.5rem]"
     >
-      <div className="absolute inset-0 flex items-center justify-center z-0">
-        <div className="relative w-full h-full">
-          <Image
-            ref={imageRef}
-            src="/images/artist-portrait.jpg"
-            alt="Oma Achebe Portrait"
-            fill
-            sizes="100vw"
-            quality={70}
-            className="object-cover object-[center_18%]"
-            priority
-          />
-          <div className="absolute inset-0 bg-black/25" />
-        </div>
+      <div className="relative h-full w-full">
+        <Image
+          ref={imageRef}
+          src="/images/studio/IMG_0890.png"
+          alt="The colorful mural inside the Artsy by Oma studio in Awka"
+          fill
+          sizes="100vw"
+          className="object-cover object-[center_42%]"
+          priority
+        />
       </div>
 
       <div
         ref={textRef}
-        className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none px-4 text-center"
+        className="absolute inset-x-4 bottom-4 z-10 bg-[#fffaf2] p-6 text-left pointer-events-none sm:inset-x-auto sm:bottom-8 sm:left-8 sm:w-[min(38rem,48vw)] sm:p-9 md:p-11"
       >
-        <h1 className="text-5xl md:text-8xl font-serif text-white tracking-tight leading-[0.95] drop-shadow-md max-w-4xl">
-          Create. Sip. Connect<span className="text-[var(--accent-orange)]">.</span>
+        <h1 className="font-serif text-[clamp(2.5rem,4.5vw,4rem)] font-black uppercase leading-[0.9] tracking-[-0.06em] text-[var(--foreground)] sm:whitespace-nowrap">
+          Artsy by Oma
         </h1>
-        <p className="mt-5 max-w-2xl text-sm md:text-lg font-sans text-white/90 drop-shadow-sm leading-relaxed">
-          Creative experiences, original art, unforgettable moments.
+        <p className="mt-4 max-w-md font-sans text-base font-medium leading-relaxed text-[var(--foreground)] sm:text-lg md:text-xl">
+          A creative studio in Awka for making, meeting and collecting.
         </p>
 
-        <div className="mt-8 flex gap-4 pointer-events-auto">
+        <div className="mt-6 grid gap-3 pointer-events-auto sm:grid-cols-2">
           <Link
             href="/experiences"
-            className="px-8 py-3.5 rounded-full bg-[var(--accent-purple)] text-white hover:bg-[var(--accent-orange)] transition-colors font-mono text-xs uppercase tracking-widest shadow-lg cursor-pointer font-bold"
+            className="inline-flex min-h-14 items-center justify-center bg-[var(--foreground)] px-5 py-3 font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-white transition-colors hover:bg-[var(--accent-purple)]"
           >
-            Book an Experience
+            Book a Session
           </Link>
           <Link
             href="/art"
-            className="px-8 py-3.5 rounded-full backdrop-blur-sm border border-white/35 text-black bg-white text-[var(--foreground)] transition-all font-mono text-xs uppercase tracking-widest shadow-lg cursor-pointer"
+            className="inline-flex min-h-14 items-center justify-center bg-[var(--accent-orange)] px-5 py-3 font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-white transition-colors hover:bg-[var(--accent-purple)]"
           >
-            Explore Art
+            View Art
           </Link>
         </div>
-      </div>
-
-      <div className="absolute bottom-10 left-8 md:left-10 z-20 text-white/70 font-mono text-[10px] tracking-[0.18em] uppercase">
-        SCROLL TO EXPLORE
       </div>
     </section>
   );

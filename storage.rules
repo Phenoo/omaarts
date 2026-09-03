@@ -20,30 +20,36 @@ service firebase.storage {
         request.resource.contentType.matches('image/.*');
     }
 
+    function isPublicResource() {
+      return resource != null &&
+        !resource.name.matches('.*/(private|unpublished)/.*') &&
+        resource.metadata.get('visibility', 'public') == 'public';
+    }
+
     // Public website assets can be displayed without a Firebase login.
     match /artworks/{allPaths=**} {
       // Existing artwork-temp files are still referenced by published records;
       // remove those objects after updating their records, then delete this
       // compatibility exception.
-      allow read: if !allPaths.matches('(^|/)(private|unpublished)(/|$)');
+      allow read: if isPublicResource();
       allow create, update: if isStaff() && isImageUpload();
       allow delete: if isStaff();
     }
 
     match /activities/{allPaths=**} {
-      allow read: if !allPaths.matches('(^|/)(private|unpublished)(/|$)');
+      allow read: if isPublicResource();
       allow create, update: if isStaff() && isImageUpload();
       allow delete: if isStaff();
     }
 
     match /gallery/{allPaths=**} {
-      allow read: if !allPaths.matches('(^|/)(private|unpublished)(/|$)');
+      allow read: if isPublicResource();
       allow create, update: if isStaff() && isImageUpload();
       allow delete: if isStaff();
     }
 
     match /site/{allPaths=**} {
-      allow read: if !allPaths.matches('(^|/)(private|unpublished)(/|$)');
+      allow read: if isPublicResource();
       allow create, update: if isStaff() && isImageUpload();
       allow delete: if isStaff();
     }
