@@ -1070,6 +1070,17 @@ textarea:focus-visible {
   border-radius: 1.25rem;
 }
 
+@media (max-width: 639px) {
+  .mobile-full-section {
+    width: 100%;
+    max-width: none;
+    margin-inline: 0;
+    border-right: 0;
+    border-left: 0;
+    border-radius: 0;
+  }
+}
+
 .noise-soft {
   position: relative;
 }

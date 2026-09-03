@@ -1,7 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import type { User } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithPopup, type User } from 'firebase/auth';
+import { auth } from '../firebase/config';
 import { CustomerProfile } from '../types';
 
 interface CustomerAuthContextType {
@@ -128,13 +129,9 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
   }, []);
 
   const loginWithGoogle = useCallback(async () => {
-    const [{ auth }, { signInWithRedirect, GoogleAuthProvider }] = await Promise.all([
-      import('../firebase/config'),
-      import('firebase/auth'),
-    ]);
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
-    await signInWithRedirect(auth, provider);
+    await signInWithPopup(auth, provider);
   }, []);
 
   const logout = useCallback(async () => {

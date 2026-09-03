@@ -60,8 +60,8 @@ test('payment status requires an unguessable confirmation proof', async () => {
   assert.match(confirmationPage, /confirmationToken/);
 });
 
-test('customer Google authentication uses a redirect flow', async () => {
+test('customer Google authentication uses a popup flow that does not require cross-origin redirect storage', async () => {
   const authContext = await source('lib/context/CustomerAuthContext.tsx');
-  assert.match(authContext, /signInWithRedirect\(auth, provider\)/);
-  assert.doesNotMatch(authContext, /signInWithPopup/);
+  assert.match(authContext, /signInWithPopup\(auth, provider\)/);
+  assert.doesNotMatch(authContext, /signInWithRedirect/);
 });

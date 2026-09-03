@@ -2,7 +2,11 @@ import Link from 'next/link';
 import Footer from '@/components/Footer';
 import { SITE } from '@/lib/site';
 
-type PolicySection = { heading: string; body: string | string[] };
+type PolicySection = {
+  heading: string;
+  body: string | string[];
+  links?: Array<{ href: string; label: string }>;
+};
 
 export default function PolicyPage({ title, label, intro, sections, updated = '15 August 2026' }: { title: string; label: string; intro: string; sections: PolicySection[]; updated?: string }) {
   return (
@@ -21,6 +25,22 @@ export default function PolicyPage({ title, label, intro, sections, updated = '1
               {Array.isArray(section.body)
                 ? section.body.map((paragraph) => <p key={paragraph}>{paragraph}</p>)
                 : <p>{section.body}</p>}
+              {section.links && section.links.length > 0 && (
+                <ul className="mt-4 space-y-2">
+                  {section.links.map((link) => (
+                    <li key={link.href}>
+                      <a
+                        href={link.href}
+                        className="text-link"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {link.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </section>
           ))}
           <p className="form-note">Questions about this policy? Contact {SITE.name} at {SITE.email} or {SITE.phoneDisplay}.</p>

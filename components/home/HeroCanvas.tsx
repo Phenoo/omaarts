@@ -55,11 +55,11 @@ export default function HeroCanvas() {
       <div className="relative h-full w-full">
         <Image
           ref={imageRef}
-          src="/images/studio/IMG_0890.png"
-          alt="The colorful mural inside the Artsy by Oma studio in Awka"
+          src="/images/studio/IMG_0889.png"
+          alt="The Artsy by Oma studio set up with easels and original artwork"
           fill
           sizes="100vw"
-          className="object-cover object-[center_42%]"
+          className="object-cover object-center"
           priority
         />
       </div>

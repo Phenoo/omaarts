@@ -83,7 +83,7 @@ export default async function Home() {
 
       <div className="relative z-10">
         <section className="relative -mt-14 pb-8 md:-mt-20">
-          <div className="section-shell max-w-[90vw] mx-auto p-6 md:p-8 lg:p-10">
+          <div className="section-shell mobile-full-section max-w-[90vw] mx-auto p-6 md:p-8 lg:p-10">
             <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
               <div>
                 <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-[var(--accent-orange)]">
@@ -173,8 +173,8 @@ export default async function Home() {
         )}
 
         <section className="py-6 md:py-10">
-          <div className="max-w-[90vw] mx-auto grid gap-6 lg:grid-cols-[1fr_1.05fr]">
-            <article className="section-shell flex h-full flex-col justify-between p-8 md:p-10">
+          <div className="mobile-full-section max-w-[90vw] mx-auto grid gap-6 lg:grid-cols-[1fr_1.05fr]">
+            <article className="section-shell mobile-full-section flex h-full flex-col justify-between p-8 md:p-10">
               <div>
                 <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-[var(--accent-orange)]">
                   Studio Practice
@@ -291,7 +291,7 @@ export default async function Home() {
         </section>
 
         <section className="py-20 md:py-24">
-          <div className="max-w-[90vw] mx-auto overflow-hidden rounded-[2.25rem] border border-[var(--accent-primary)]/12 bg-[var(--surface-strong)] text-white shadow-[0_30px_90px_rgba(58,30,112,0.22)]">
+          <div className="mobile-full-section max-w-[90vw] mx-auto overflow-hidden rounded-[2.25rem] border border-[var(--accent-primary)]/12 bg-[var(--surface-strong)] text-white shadow-[0_30px_90px_rgba(58,30,112,0.22)]">
             <div className="grid gap-8 p-6 md:p-8 lg:grid-cols-[0.92fr_1.08fr] lg:p-12">
               <article className="flex flex-col justify-between">
                 <div>
@@ -422,7 +422,7 @@ export default async function Home() {
         </section>
 
         <section className="pb-24">
-          <div className="max-w-[90vw] mx-auto rounded-[2rem] border border-[var(--border-soft)] bg-white/90 p-8 shadow-[var(--shadow-soft)] md:p-10">
+          <div className="mobile-full-section max-w-[90vw] mx-auto rounded-[2rem] border border-[var(--border-soft)] bg-white/90 p-8 shadow-[var(--shadow-soft)] md:p-10">
             <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
               <div>
                 <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-[var(--accent-orange)]">

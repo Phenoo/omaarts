@@ -57,11 +57,28 @@ export default function LoginPage() {
     try {
       await loginWithGoogle();
     } catch (err: unknown) {
-      const firebaseError = err as { code?: string };
-      console.error('Customer Google sign-in failed:', firebaseError.code || 'unknown');
-      setError(firebaseError.code === 'auth/unauthorized-domain'
-        ? 'Google sign-in is not authorized for this website. Please contact support.'
-        : 'Google sign-in failed. Please try again.');
+      const firebaseError = err as { code?: string; message?: string };
+      console.error('Customer Google sign-in failed:', {
+        code: firebaseError.code || 'unknown',
+        message: firebaseError.message || 'No error message provided',
+      });
+      switch (firebaseError.code) {
+        case 'auth/unauthorized-domain':
+          setError('Google sign-in is not authorized for this website. Please contact support.');
+          break;
+        case 'auth/popup-blocked':
+          setError('Your browser blocked the Google sign-in window. Allow pop-ups for this site and try again.');
+          break;
+        case 'auth/popup-closed-by-user':
+        case 'auth/cancelled-popup-request':
+          setError('Google sign-in was cancelled. Please try again when you are ready.');
+          break;
+        case 'auth/account-exists-with-different-credential':
+          setError('An account already exists for this email. Sign in with your email and password instead.');
+          break;
+        default:
+          setError('Google sign-in failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
